@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* ── Theme tokens ── */
+:root {
+  --lobby-bg:        #09090e;
+  --lobby-card-bg:   #13131a;
+  --lobby-card-bord: #1e1e2a;
+  --lobby-text:      #e8d5a3;
+  --lobby-text-dim:  #3e3e50;
+
+  --panel-bg:        #111116;
+  --panel-hdr:       #18181f;
+  --panel-bord:      #2a2a35;
+  --panel-text:      #8a8a9a;
+  --panel-text-dim:  #4a4a5a;
+  --panel-bg-deep:   #0a0a0f;
+
+  --table-row-1:     #111116;
+  --table-row-2:     #151519;
+  --table-highlight: #1e1e26;
+  --table-future:    #0e0e12;
+  --table-pulka-bg:  #0a1410;
+  --table-pulka-bord:#1a3a28;
+  --table-text:      #8a8a9a;
+  --table-text-dim:  #3a3a4a;
+
+  --table-sep-bg:    #0b0b12;
+  --table-cur-bg:    #14141c;
+  --table-total-bg:  #18181f;
+  --table-score-fg:  #c8c8d8;
+  --table-bid-fg:    #9090aa;
+  --table-idx-fg:    #7a7a8a;
+  --table-empty-fg:  #5a5a6a;
+  --table-hdr-fg:    #8a8a9a;
+
+  --lobby-gradient:     radial-gradient(ellipse at 50% 10%, #182040 0%, #0d1528 45%, #07090f 100%);
+  --lobby-title-color:  #e8d5a3;
+  --lobby-title-shadow: 0 0 70px rgba(201,168,76,0.55), 0 4px 16px rgba(0,0,0,0.9);
+  --lobby-sub-color:    #3e5070;
+  --ctrl-bg:            #0c1828;
+  --ctrl-border:        1px solid #182438;
+  --ctrl-color:         #6070a0;
+  --ctrl-shadow:        0 6px 24px rgba(12,24,40,0.6);
+}
+
+[data-theme="light"] {
+  --lobby-bg:        #f4f1e8;
+  --lobby-card-bg:   #faf9f4;
+  --lobby-card-bord: #d8d0b8;
+  --lobby-text:      #2a1f0a;
+  --lobby-text-dim:  #8a7a5a;
+
+  --panel-bg:        #f5f2e8;
+  --panel-hdr:       #eceae0;
+  --panel-bord:      #d8d0b8;
+  --panel-text:      #3a3020;
+  --panel-text-dim:  #7a6a4a;
+  --panel-bg-deep:   #e8e4d8;
+
+  --table-row-1:     #faf9f4;
+  --table-row-2:     #f4f1e8;
+  --table-highlight: #ede8d8;
+  --table-future:    #f8f6f0;
+  --table-pulka-bg:  #e8f2ec;
+  --table-pulka-bord:#a8ccb4;
+  --table-text:      #4a3820;
+  --table-text-dim:  #8a7a5a;
+
+  --table-sep-bg:    #ddd8c8;
+  --table-cur-bg:    #e8e2d4;
+  --table-total-bg:  #edeae0;
+  --table-score-fg:  #1a1208;
+  --table-bid-fg:    #5a5040;
+  --table-idx-fg:    #4a3820;
+  --table-empty-fg:  #9a9080;
+  --table-hdr-fg:    #4a3820;
+
+  --lobby-gradient:     radial-gradient(ellipse at 50% 5%, #cbc49a 0%, #dcd5b5 45%, #edeadb 100%);
+  --lobby-title-color:  #3a2a08;
+  --lobby-title-shadow: 0 0 30px rgba(201,168,76,0.25), 0 2px 6px rgba(0,0,0,0.12);
+  --lobby-sub-color:    #7a6a4a;
+  --ctrl-bg:            #e0dcd0;
+  --ctrl-border:        1px solid #c0b8a0;
+  --ctrl-color:         #6a6050;
+  --ctrl-shadow:        0 4px 16px rgba(192,184,160,0.4);
+}
+
+/* ── Card fly-in animations (TrickArea) ── */
+@keyframes card-fly-in-bottom {
+  from { opacity: 0; transform: translateY(72px)  scale(0.86); }
+  to   { opacity: 1; transform: translateY(0)      scale(1);    }
+}
+@keyframes card-fly-in-top {
+  from { opacity: 0; transform: translateY(-72px) scale(0.86); }
+  to   { opacity: 1; transform: translateY(0)     scale(1);    }
+}
+@keyframes card-fly-in-left {
+  from { opacity: 0; transform: translateX(-72px) scale(0.86); }
+  to   { opacity: 1; transform: translateX(0)     scale(1);    }
+}
+@keyframes card-fly-in-right {
+  from { opacity: 0; transform: translateX(72px) scale(0.86); }
+  to   { opacity: 1; transform: translateX(0)    scale(1);    }
+}
+
+/* Score panel uses CSS vars so theme applies */
+.score-panel {
+  background: var(--panel-bg) !important;
+  border-left-color: var(--panel-bord) !important;
+}
+.score-panel-hdr {
+  background: var(--panel-hdr) !important;
+  border-bottom-color: var(--panel-bord) !important;
+}

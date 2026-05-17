@@ -1,0 +1,30 @@
+{
+  "name": "joker-game-backend",
+  "version": "1.4.0",
+  "description": "Joker card game backend server",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "cross-env NODE_ENV=development node server.js",
+    "test": "node --test test/*.test.js",
+    "test:iter1": "node --test test/iter1_engine.test.js",
+    "test:iter2": "node --test test/iter2_state.test.js",
+    "test:iter3": "node --test test/iter3_integration.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.3",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
+    "pg": "^8.20.0",
+    "socket.io": "^4.7.2",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "socket.io-client": "^4.8.3"
+  }
+}
