@@ -45,6 +45,8 @@ export async function runMigrations() {
       used       BOOLEAN     NOT NULL DEFAULT false,
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT false;
   `)
 
   // ── Persistent rooms (Phase 2 — survives server restarts) ────────────────
@@ -893,6 +895,45 @@ export async function getBlockedUsers(userId) {
     [userId]
   )
   return rows
+}
+
+// ── Password reset ────────────────────────────────────────────────────────────
+
+export async function createPasswordResetToken(userId) {
+  const { randomBytes } = await import('crypto')
+  const token = randomBytes(32).toString('hex')
+  const expiresAt = new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+  await pool.query(
+    `DELETE FROM password_reset_tokens WHERE user_id = $1`,
+    [userId]
+  )
+  await pool.query(
+    `INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES ($1, $2, $3)`,
+    [userId, token, expiresAt]
+  )
+  return token
+}
+
+export async function consumePasswordResetToken(token) {
+  const { rows } = await pool.query(
+    `DELETE FROM password_reset_tokens
+     WHERE token = $1 AND expires_at > NOW() AND used = false
+     RETURNING user_id`,
+    [token]
+  )
+  return rows[0]?.user_id ?? null
+}
+
+export async function getUserByEmail(email) {
+  const { rows } = await pool.query(
+    `SELECT * FROM users WHERE email = $1`,
+    [email.toLowerCase().trim()]
+  )
+  return rows[0] ?? null
+}
+
+export async function setEmailVerified(userId) {
+  await pool.query(`UPDATE users SET email_verified = true WHERE id = $1`, [userId])
 }
 
 export default pool

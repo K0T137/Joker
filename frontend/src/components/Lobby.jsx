@@ -400,6 +400,9 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
   const [authPassword, setAuthPassword] = useState('')
   const [authErr,      setAuthErr]      = useState('')
   const [authBusy,     setAuthBusy]     = useState(false)
+  const [forgotMode,   setForgotMode]   = useState(false)
+  const [forgotEmail,  setForgotEmail]  = useState('')
+  const [forgotSent,   setForgotSent]   = useState(false)
   const [userStats,    setUserStats]    = useState(null)
 
   // ── prefill name when user logs in ──
@@ -502,6 +505,19 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
   const openModal  = (m) => {
     setModal(m); setError(''); setPlayPanel(null)
     if (m === 'play' && !user) setName(pickGuestName(lang))
+  }
+
+  const handleForgotSubmit = async () => {
+    if (!forgotEmail.trim()) return
+    setAuthBusy(true)
+    try {
+      await fetch(`${API_URL}/api/auth/forgot-password`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: forgotEmail.trim() }),
+      })
+      setForgotSent(true)
+    } catch {}
+    setAuthBusy(false)
   }
 
   const handleAuthSubmit = async () => {
@@ -1223,17 +1239,51 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                 <TextInput placeholder={t('email_ph')} value={authEmail} type="email"
                   onChange={e => setAuthEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAuthSubmit()} />
               )}
-              <TextInput placeholder={t('password_ph')} value={authPassword} type="password"
-                onChange={e => setAuthPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAuthSubmit()} />
-              {authErr && <p className="text-xs text-center" style={{ color: '#e05252' }}>{authErr}</p>}
-              <button onClick={handleAuthSubmit} disabled={authBusy}
-                className="w-full rounded-xl font-bold text-lg tracking-wide transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center"
-                style={{ height: 80, background: '#c9a84c', color: '#07090e' }}>
-                {authBusy ? '…' : authMode === 'login' ? t('login_btn') : t('register_btn')}
-              </button>
-              <p className="text-[10px] text-center" style={{ color: '#2e4060' }}>
-                {t('play_as_guest')}
-              </p>
+              {forgotMode ? (
+                forgotSent ? (
+                  <div style={{ textAlign: 'center', padding: '8px 0' }}>
+                    <p style={{ color: '#4ade80', fontSize: 13, marginBottom: 8 }}>✓ Check your email for a reset link</p>
+                    <button onClick={() => { setForgotMode(false); setForgotSent(false); setForgotEmail('') }}
+                      style={{ color: '#c9a84c', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer' }}>
+                      Back to login
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <TextInput placeholder="your@email.com" value={forgotEmail} type="email" autoFocus
+                      onChange={e => setForgotEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleForgotSubmit()} />
+                    <button onClick={handleForgotSubmit} disabled={authBusy}
+                      className="w-full rounded-xl font-bold text-lg tracking-wide transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center"
+                      style={{ height: 80, background: '#c9a84c', color: '#07090e' }}>
+                      {authBusy ? '…' : 'Send reset link'}
+                    </button>
+                    <button onClick={() => setForgotMode(false)}
+                      style={{ color: '#364060', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'center' }}>
+                      Back to login
+                    </button>
+                  </>
+                )
+              ) : (
+                <>
+                  <TextInput placeholder={t('password_ph')} value={authPassword} type="password"
+                    onChange={e => setAuthPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAuthSubmit()} />
+                  {authMode === 'login' && (
+                    <button onClick={() => { setForgotMode(true); setAuthErr('') }}
+                      style={{ color: '#364060', fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', padding: 0, marginTop: -8 }}>
+                      Forgot password?
+                    </button>
+                  )}
+                  {authErr && <p className="text-xs text-center" style={{ color: '#e05252' }}>{authErr}</p>}
+                  <button onClick={handleAuthSubmit} disabled={authBusy}
+                    className="w-full rounded-xl font-bold text-lg tracking-wide transition-all hover:brightness-110 active:scale-[0.98] disabled:opacity-40 flex items-center justify-center"
+                    style={{ height: 80, background: '#c9a84c', color: '#07090e' }}>
+                    {authBusy ? '…' : authMode === 'login' ? t('login_btn') : t('register_btn')}
+                  </button>
+                  <p className="text-[10px] text-center" style={{ color: '#2e4060' }}>
+                    {t('play_as_guest')}
+                  </p>
+                </>
+              )}
             </div>
           )}
         </Modal>

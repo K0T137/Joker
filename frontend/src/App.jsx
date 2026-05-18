@@ -47,6 +47,11 @@ export default function App() {
   const [isMuted,              setIsMuted]              = useState(() => localStorage.getItem('joker_muted') === '1')
   const [gameEndStats,         setGameEndStats]         = useState(null)  // { finalScores, players, roundHistory }
   const [rematchInvite,        setRematchInvite]        = useState(null)  // { inviterName, newRoomId }
+  const [resetToken,           setResetToken]           = useState(() => new URLSearchParams(window.location.search).get('reset_token'))
+  const [resetPassword,        setResetPassword]        = useState('')
+  const [resetError,           setResetError]           = useState('')
+  const [resetDone,            setResetDone]            = useState(false)
+  const [resetBusy,            setResetBusy]            = useState(false)
   const [onlineMap,            setOnlineMap]            = useState({})     // userId → true
   const [lobbyMessages,        setLobbyMessages]        = useState([])
   const [lobbyChatOpen,        setLobbyChatOpen]        = useState(false)
@@ -748,8 +753,48 @@ export default function App() {
 
   const isMyTimer = turnTimer?.playerId === playerId
 
+  const handleResetSubmit = async () => {
+    if (!resetPassword.trim() || resetPassword.length < 4) { setResetError('Password must be at least 4 characters'); return }
+    setResetBusy(true); setResetError('')
+    try {
+      const res  = await fetch('/api/auth/reset-password', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token: resetToken, password: resetPassword }),
+      })
+      const data = await res.json()
+      if (!res.ok) { setResetError(data.error ?? 'Invalid or expired link'); setResetBusy(false); return }
+      localStorage.setItem('joker_token', data.token)
+      window.history.replaceState({}, '', window.location.pathname)
+      setResetDone(true)
+      setTimeout(() => { setResetToken(null); setResetDone(false) }, 2500)
+    } catch { setResetError('Network error') }
+    setResetBusy(false)
+  }
+
   return (
     <>
+      {resetToken && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, background: 'rgba(0,0,0,0.92)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: 'rgba(8,8,12,0.98)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 20, padding: '40px 32px', width: 'min(92vw,400px)', textAlign: 'center' }}>
+            {resetDone ? (
+              <p style={{ color: '#4ade80', fontSize: 16, fontWeight: 700 }}>✓ Password updated — logging you in…</p>
+            ) : (
+              <>
+                <h2 style={{ color: '#c9a84c', fontFamily: 'Georgia,serif', marginBottom: 24 }}>Set new password</h2>
+                <input type="password" placeholder="New password" value={resetPassword} autoFocus
+                  onChange={e => setResetPassword(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleResetSubmit()}
+                  style={{ width: '100%', padding: '14px 16px', borderRadius: 10, background: '#0e1420', border: '1px solid #1e2b40', color: '#ccc', fontSize: 15, boxSizing: 'border-box', marginBottom: 12 }} />
+                {resetError && <p style={{ color: '#e05252', fontSize: 12, marginBottom: 12 }}>{resetError}</p>}
+                <button onClick={handleResetSubmit} disabled={resetBusy}
+                  style={{ width: '100%', padding: '14px 0', borderRadius: 12, background: '#c9a84c', color: '#07090e', fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', opacity: resetBusy ? 0.5 : 1 }}>
+                  {resetBusy ? '…' : 'Reset password'}
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
       {topBar}
       {devButton}
       {cabinetOpen && <Cabinet onClose={() => setCabinetOpen(false)} onlineMap={onlineMap} />}

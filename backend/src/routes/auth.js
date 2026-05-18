@@ -3,7 +3,11 @@ import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import pool, { claimDailyBonus } from '../db.js'
+import pool, { claimDailyBonus, createPasswordResetToken, consumePasswordResetToken, getUserByEmail } from '../db.js'
+import { Resend } from 'resend'
+
+const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
+const FROM_EMAIL = process.env.EMAIL_FROM || 'onboarding@resend.dev'
 
 const router = Router()
 
@@ -146,6 +150,65 @@ router.get('/me', (req, res) => {
     res.json(decoded)
   } catch {
     res.status(401).json({ error: 'Invalid token' })
+  }
+})
+
+// POST /api/auth/forgot-password  { email }
+router.post('/forgot-password', async (req, res) => {
+  if (!process.env.DATABASE_URL) return res.status(503).json({ error: 'DB not configured' })
+  // Always return 200 to avoid user enumeration
+  res.json({ ok: true })
+
+  try {
+    const { email } = req.body ?? {}
+    if (!email?.trim()) return
+    const user = await getUserByEmail(email)
+    if (!user || !user.email) return
+    if (!resend) return
+
+    const token = await createPasswordResetToken(user.id)
+    const resetUrl = `${FRONTEND_URL}/?reset_token=${token}`
+
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to:   user.email,
+      subject: 'Reset your Joker password',
+      html: `
+        <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px">
+          <h2 style="color:#c9a84c">Reset your password</h2>
+          <p>Hi <strong>${user.username}</strong>,</p>
+          <p>Click the button below to reset your Joker password. This link expires in 1 hour.</p>
+          <a href="${resetUrl}" style="display:inline-block;margin:24px 0;padding:12px 28px;background:#c9a84c;color:#0a0a0f;font-weight:700;text-decoration:none;border-radius:8px">
+            Reset Password
+          </a>
+          <p style="color:#888;font-size:13px">If you didn't request this, you can safely ignore this email.</p>
+        </div>
+      `,
+    })
+  } catch (err) {
+    console.error('[forgot-password]', err.message)
+  }
+})
+
+// POST /api/auth/reset-password  { token, password }
+router.post('/reset-password', async (req, res) => {
+  if (!process.env.DATABASE_URL) return res.status(503).json({ error: 'DB not configured' })
+  try {
+    const { token, password } = req.body ?? {}
+    if (!token || !password?.trim()) return res.status(400).json({ error: 'Token and password are required' })
+    if (password.length < 4) return res.status(400).json({ error: 'Password must be at least 4 characters' })
+
+    const userId = await consumePasswordResetToken(token)
+    if (!userId) return res.status(400).json({ error: 'Invalid or expired reset link' })
+
+    const hash = await bcrypt.hash(password, 10)
+    await pool.query(`UPDATE users SET password_hash = $1 WHERE id = $2`, [hash, userId])
+
+    const { rows } = await pool.query(`SELECT * FROM users WHERE id = $1`, [userId])
+    res.json({ token: makeJwt(rows[0]) })
+  } catch (err) {
+    console.error('[reset-password]', err.message)
+    res.status(500).json({ error: 'Server error' })
   }
 })
 
