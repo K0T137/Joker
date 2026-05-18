@@ -162,6 +162,53 @@ Reference files: `Joker/competitor/jok-ge/`
 
 ---
 
+## TIER 6 — New ideas from Google Play APK analysis (2026-05-18)
+
+### 30. Quick Mode (game variant)
+- Play only 1 pulka instead of the full 4 — game takes ~10 min
+- Same rules, just shorter session
+- Good for casual/mobile players
+
+### 31. Lucky Mode (game variant)
+- Each round has only 1 card per player, played 4 times
+- Pure luck/gamble variant
+- Low implementation effort — just a different round structure
+
+### 32. Insurance / ragequit penalty
+- Small token stake deducted when joining a ranked game
+- Refunded on game completion, forfeited if you quit mid-game
+- Winners of the abandoned game split the forfeited tokens
+- Directly solves ragequit problem
+
+### 33. Activity reward sharing
+- Players with 90%+ activity (non-AFK) earn a share of penalty tokens from AFK/ragequit players
+- Rewards good actors, punishes griefers financially
+
+### 34. "Joker" title — top-ranked crown
+- #1 player on the leaderboard holds the "Joker" title/crown until dethroned
+- Displayed next to their name everywhere
+- Drives competitive engagement
+
+### 35. Old School mode (38-card deck)
+- Add all four 6s back to the deck (38 cards total)
+- Harder variant: harder to count suits, second Joker unknown until end
+- No trump selection in 9-card rounds (per their help text)
+- Low engine effort — just a different deck config
+
+### 36. Richer stat tracking
+- `perfect9Count` — won all 9 tricks in a 9-card round
+- `perfect8Count` — won all 8 tricks in an 8-card round
+- `place1Count`, `place2Count`, `place3Count` — podium finish history
+- `eliminatedTopCount` — beat a top-ranked player
+- Surface these on the profile page alongside existing stats
+
+### 37. Emoji reactions mid-game
+- Quick emoji panel during play (beyond chat)
+- `sendChatEmotion` in their GraphQL
+- 6–8 reaction buttons (👏 😤 🤔 😂 etc.)
+
+---
+
 ## Game Engine Resilience (separate doc: engine-fixes.md)
 
 See `Joker/docs/engine-fixes.md` for what to borrow from their reconnect/AFK/state-machine patterns.
