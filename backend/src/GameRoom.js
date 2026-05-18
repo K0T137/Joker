@@ -21,6 +21,7 @@ export class GameRoom {
     this.players = new Map();
     this.spectators = new Set();
     this.kickedSocketIds = new Set();
+    this.kickedUserIds   = new Set();
     this.gameState = null;
     this.status = 'waiting';
     this.pulkaHistory = [];
@@ -48,7 +49,9 @@ export class GameRoom {
   get spectatorCount() { return this.spectators.size; }
 
   addKickedSocket(socketId) { if (socketId) this.kickedSocketIds.add(socketId); }
+  addKickedUser(userId)     { if (userId)   this.kickedUserIds.add(userId); }
   isKickedSocket(socketId) { return this.kickedSocketIds.has(socketId); }
+  isKickedUser(userId)     { return userId ? this.kickedUserIds.has(userId) : false; }
 
   addPlayer(playerId, socketId, name, userId = null) {
     if (this.players.size >= this.maxPlayers) throw new Error('Room is full');

@@ -1200,7 +1200,9 @@ io.on('connection', (socket) => {
 
       if (!gameRoom) { callback({ success: false, error: 'Room not found' }); return; }
       if (gameRoom.status !== 'waiting') { callback({ success: false, error: 'Game already in progress' }); return; }
-      if (gameRoom.isKickedSocket(socket.id)) { callback({ success: false, error: 'You were kicked from this room' }); return; }
+      if (gameRoom.isKickedSocket(socket.id) || gameRoom.isKickedUser(userId)) {
+        callback({ success: false, error: 'You were kicked from this room' }); return;
+      }
       if (gameRoom.passwordHash && !checkPassword(password || '', gameRoom.passwordHash)) {
         callback({ success: false, error: 'Wrong password' }); return;
       }
@@ -1303,8 +1305,9 @@ io.on('connection', (socket) => {
       const target = gameRoom.players.get(targetId);
       if (!target) { callback?.({ success: false, error: 'Player not in room' }); return; }
 
-      // Remember this socket so they can't immediately rejoin
+      // Remember this socket and userId so they can't rejoin (new socket after refresh)
       gameRoom.addKickedSocket(target.socketId);
+      gameRoom.addKickedUser(target.userId);
 
       // Notify and disconnect target socket if connected
       if (target.socketId) {
@@ -1494,6 +1497,9 @@ io.on('connection', (socket) => {
       if (!gameRoom?.gameState) { callback({ success: false, error: 'Game not started' }); return; }
 
       const gs = gameRoom.gameState;
+      if (gs.phase !== PHASES.BIDDING) {
+        callback({ success: false, error: 'Not in bidding phase' }); return;
+      }
       const ok = gs.recordBid(playerId, bid);
 
       if (!ok) {
@@ -1595,8 +1601,11 @@ io.on('connection', (socket) => {
 
       if (!gameRoom?.gameState) { callback({ success: false, error: 'Game not started' }); return; }
 
+      const gs = gameRoom.gameState;
+      if (gs.phase !== PHASES.PLAYING) {
+        callback({ success: false, error: 'Not in playing phase' }); return;
+      }
       const result  = gameRoom.playCard(playerId, card, jokerMode, takeSuit, giveSuit);
-      const gs      = gameRoom.gameState;
 
       bufferCardPlay(gameRoom, playerId, card, jokerMode, takeSuit, giveSuit);
       loggers.get(roomId)?.log('card_played', {
