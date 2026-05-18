@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { useT } from '../../context/LangContext'
 
-export default function GameEndModal({ stats, players, myPlayerId, roomId, onPlayAgain, onRematch, onLeaveGame, playInPairs, isRanked = false }) {
+export default function GameEndModal({ stats, players, myPlayerId, roomId, onPlayAgain, onRematch, onLeaveGame, playInPairs, isRanked = false, roundHistory = [] }) {
   const t = useT()
   const [copied, setCopied] = useState(false)
+  const [showDetails, setShowDetails] = useState(false)
   const fmtPts   = (v) => { const f = v / 100; return Number.isInteger(f) ? String(f) : f.toFixed(1) }
+  const fmtScore = (v) => { if (v == null) return '—'; const f = v / 100; return (v >= 0 ? '+' : '') + (Number.isInteger(f) ? f : f.toFixed(1)) }
 
   // In pairs mode: merge P1+P3, P2+P4 into two team rows; hide P3/P4 individually
   const displayRows = (() => {
@@ -108,6 +110,73 @@ export default function GameEndModal({ stats, players, myPlayerId, roomId, onPla
             })}
           </tbody>
         </table>
+
+        {roundHistory.length > 0 && (
+          <div style={{ marginBottom: 16 }}>
+            <button onClick={() => setShowDetails(v => !v)}
+              style={{ background: 'none', border: 'none', color: 'rgba(201,168,76,0.5)', fontSize: 11, letterSpacing: '0.15em', textTransform: 'uppercase', cursor: 'pointer', padding: '4px 0' }}>
+              {showDetails ? '▲' : '▼'} Round breakdown
+            </button>
+            {showDetails && (() => {
+              const pulkas = [...new Set(roundHistory.map(r => r.pulkaNumber))].sort((a, b) => a - b)
+              const ordered = players.filter(p => roundHistory[0]?.bids?.[p.id] != null || roundHistory[0]?.tricks?.[p.id] != null)
+              return (
+                <div style={{ marginTop: 10, overflowX: 'auto' }}>
+                  {pulkas.map(pulka => {
+                    const rounds = roundHistory.filter(r => r.pulkaNumber === pulka)
+                    return (
+                      <div key={pulka} style={{ marginBottom: 14 }}>
+                        <div style={{ color: 'rgba(201,168,76,0.45)', fontSize: 10, letterSpacing: '0.25em', textTransform: 'uppercase', marginBottom: 6 }}>
+                          Pulka {pulka}
+                        </div>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
+                          <thead>
+                            <tr style={{ color: '#3a3a4a', fontSize: 10 }}>
+                              <th style={{ textAlign: 'left', paddingBottom: 4, fontWeight: 500 }}>Rnd</th>
+                              {ordered.map(p => (
+                                <th key={p.id} style={{ paddingBottom: 4, fontWeight: 500, color: p.id === myPlayerId ? 'rgba(201,168,76,0.6)' : '#3a3a4a', minWidth: 54 }}>
+                                  {p.name.length > 7 ? p.name.slice(0, 6) + '…' : p.name}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {rounds.map(r => (
+                              <tr key={r.roundNumber} style={{ borderTop: '1px solid rgba(255,255,255,0.03)' }}>
+                                <td style={{ padding: '4px 4px 4px 0', color: '#3a3a4a', whiteSpace: 'nowrap' }}>
+                                  R{r.roundNumber} <span style={{ color: '#2a2a38' }}>({r.cardsInRound})</span>
+                                </td>
+                                {ordered.map(p => {
+                                  const bid    = r.bids?.[p.id]
+                                  const took   = r.tricks?.[p.id] ?? 0
+                                  const sc     = r.scores?.[p.id]
+                                  const exact  = bid != null && bid === took
+                                  const hisht  = sc != null && sc < 0
+                                  return (
+                                    <td key={p.id} style={{ padding: '4px 2px', textAlign: 'center' }}>
+                                      <span style={{ color: hisht ? '#ef4444' : exact ? '#4ade80' : '#6a6a8a', fontWeight: exact || hisht ? 600 : 400 }}>
+                                        {bid ?? '?'}/{took}
+                                      </span>
+                                      {sc != null && (
+                                        <span style={{ display: 'block', fontSize: 9, color: hisht ? '#ef4444' : exact ? '#4ade80' : '#3a3a4a', marginTop: 1 }}>
+                                          {fmtScore(sc)}
+                                        </span>
+                                      )}
+                                    </td>
+                                  )
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )
+                  })}
+                </div>
+              )
+            })()}
+          </div>
+        )}
 
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
           {onPlayAgain && (

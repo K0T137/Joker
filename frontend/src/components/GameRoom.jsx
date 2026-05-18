@@ -593,6 +593,7 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
                 onLeaveGame={onLeaveGame}
                 playInPairs={gameEndStats?.playInPairs ?? playInPairs}
                 isRanked={gameEndStats?.isRanked ?? false}
+                roundHistory={roundHistory}
               />
             )
           })()}
@@ -1024,6 +1025,7 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
               onLeaveGame={onLeaveGame}
               playInPairs={gameEndStats?.playInPairs ?? playInPairs}
               isRanked={gameEndStats?.isRanked ?? false}
+              roundHistory={roundHistory}
             />
           )
         })()}
