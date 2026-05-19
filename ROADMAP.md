@@ -1,6 +1,6 @@
 # Joker — Development Roadmap
 
-Last updated: 2026-05-14
+Last updated: 2026-05-19
 
 ---
 
@@ -73,6 +73,16 @@ Last updated: 2026-05-14
 ### Responsive & i18n
 - [x] Mobile-responsive layout — game table adapts at < 640 px; compact player badges, overlay seats, wrapped bid buttons
 - [x] i18n — English / Georgian / Russian with live toggle (EN|KA|RU button, persisted in localStorage)
+- [x] Settings bar moved to top-right; compact icon-only on mobile; LangToggle `dropdownRight` prop prevents overflow
+
+### Landing & Trust
+- [x] Privacy policy page (`/privacy.html`)
+- [x] Landing pitch tagline + How to Play as prominent button
+- [x] Personal About section on lobby (EN/KA/RU)
+- [x] Footer with creator credit (GitHub) and privacy link
+- [x] Token tooltip in Profile modal
+- [x] Bug fix — `aspect-ratio` CSS replaced with `paddingBottom` hack for old Android WebView
+- [x] Bug fix — hand invisible after mid-game page reload (phase guard + immediate `hand_update` on rejoin)
 
 ### Infrastructure
 - [x] Railway deployment (single-server: backend serves built frontend)

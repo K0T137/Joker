@@ -711,28 +711,35 @@ export default function App() {
 
   // Hide topBar when portrait+in-game (lang/theme live inside portrait controls bar instead)
   const inGame = !!(gameState && (playerId || isSpectator))
-  const topBar = isPortraitMobile && inGame ? null : (
-    <div className="fixed top-3 left-4 z-50" style={{ display: 'flex', alignItems: 'center', background: 'rgba(8,8,12,0.82)', border: '1px solid #252530', borderRadius: '0.875rem', padding: '3px', gap: '2px' }}>
-      <LangToggle triggerStyle={{ background: 'transparent', border: 'none' }} />
-      <ThemeToggle theme={theme} onToggle={() => setTheme(th => th === 'dark' ? 'light' : 'dark')} style={{ background: 'transparent', border: 'none' }} />
+  const topBar = isPortraitMobile && inGame ? null : isPortraitMobile ? (
+    /* Mobile lobby — minimal, icon-only, no background container */
+    <div className="fixed top-2 right-3 z-50" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      <LangToggle dropdownRight triggerStyle={{ background: 'rgba(8,8,12,0.45)', border: '1px solid rgba(37,37,48,0.3)', width: 42, height: 30, color: '#6a7a9a', borderRadius: '0.5rem' }} />
+      <ThemeToggle theme={theme} onToggle={() => setTheme(th => th === 'dark' ? 'light' : 'dark')} style={{ background: 'rgba(8,8,12,0.45)', border: '1px solid rgba(37,37,48,0.3)', width: 30, height: 30, fontSize: 15, borderRadius: '0.5rem' }} />
+    </div>
+  ) : (
+    /* Desktop — top-right, lower visual weight */
+    <div className="fixed top-3 right-4 z-50" style={{ display: 'flex', alignItems: 'center', background: 'rgba(8,8,12,0.5)', border: '1px solid rgba(37,37,48,0.4)', borderRadius: '0.875rem', padding: '3px', gap: '2px' }}>
+      <LangToggle dropdownRight triggerStyle={{ background: 'transparent', border: 'none', color: '#6a7a9a', width: 50, height: 34 }} />
+      <ThemeToggle theme={theme} onToggle={() => setTheme(th => th === 'dark' ? 'light' : 'dark')} style={{ background: 'transparent', border: 'none', width: 34, height: 34, fontSize: 17 }} />
       <button
         onClick={toggleFourColor}
         title="Four-color suits"
         style={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
-          width: 58, height: 38, padding: 0,
-          borderRadius: '0.625rem',
+          width: 46, height: 34, padding: 0,
+          borderRadius: '0.5rem',
           background: fourColor ? 'rgba(59,130,246,0.15)' : 'transparent',
-          border: fourColor ? '1px solid rgba(59,130,246,0.4)' : 'none',
-          cursor: 'pointer', color: fourColor ? '#3b82f6' : '#6a7a9a',
-          fontSize: 18, lineHeight: 1,
+          border: fourColor ? '1px solid rgba(59,130,246,0.35)' : 'none',
+          cursor: 'pointer', color: fourColor ? '#3b82f6' : '#5a6a8a',
+          fontSize: 14, lineHeight: 1,
         }}
       >
         <span>
-          <span style={{ color: '#4a4a6a' }}>♠</span>
-          <span style={{ color: '#dc2626' }}>♥</span>
-          <span style={{ color: fourColor ? '#3b82f6' : '#dc2626' }}>♦</span>
-          <span style={{ color: fourColor ? '#22c55e' : '#6a6a8a' }}>♣</span>
+          <span style={{ color: '#3a3a5a' }}>♠</span>
+          <span style={{ color: '#b82020' }}>♥</span>
+          <span style={{ color: fourColor ? '#3b82f6' : '#b82020' }}>♦</span>
+          <span style={{ color: fourColor ? '#22c55e' : '#4a4a6a' }}>♣</span>
         </span>
       </button>
     </div>

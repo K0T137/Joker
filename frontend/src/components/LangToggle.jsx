@@ -6,7 +6,7 @@ const LABELS     = { en: 'ENG',     ka: 'GEO',     ru: 'RUS'     }
 const FULL_NAMES = { en: 'English', ka: 'Georgian', ru: 'Russian' }
 const LANGS      = ['en', 'ka', 'ru']
 
-export default function LangToggle({ labeled = false, compact = false, triggerStyle: triggerStyleOverride = {} }) {
+export default function LangToggle({ labeled = false, compact = false, dropdownRight = false, triggerStyle: triggerStyleOverride = {} }) {
   const { lang, setLang } = useLang()
   const [open, setOpen]   = useState(false)
   const ref               = useRef(null)
@@ -83,7 +83,7 @@ export default function LangToggle({ labeled = false, compact = false, triggerSt
         <div style={{
           position:     'absolute',
           top:          'calc(100% + 6px)',
-          left:         0,
+          ...(dropdownRight ? { right: 0 } : { left: 0 }),
           background:   'rgba(8,8,12,0.97)',
           border:       '1px solid #2a2a38',
           borderRadius: '0.625rem',

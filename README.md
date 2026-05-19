@@ -2,13 +2,26 @@
 
 Online multiplayer implementation of the Georgian trick-taking card game Joker. 4 players, real-time WebSocket gameplay, bot opponents included.
 
-**Live:** [joker-production-9ce4.up.railway.app](https://joker-production-9ce4.up.railway.app)
+**Live:** [jokr.online](https://jokr.online)
 
 ---
 
 ## Version History
 
-### v1.6 — Social Layer, Achievements & Polish (current)
+### v1.7 — Landing UX, Trust & Bug Fixes (current)
+- **About section** — personal creator note on the lobby landing (Konstantine's story); EN/KA/RU translated
+- **Privacy policy page** — standalone `/privacy.html`; linked in lobby footer
+- **Landing pitch** — "Free-to-play · 4 players · Skill-based" tagline below the hero
+- **How to Play** promoted — full-weight button on both mobile and desktop lobby layouts
+- **Settings bar** moved to top-right; lower contrast; compact icon-only version on mobile (no 4-colour toggle cluttering small screens)
+- **LangToggle `dropdownRight` prop** — dropdown aligns to right edge when bar is top-right; prevents overflow on small screens
+- **Footer** — "Made by K0T137" (links to GitHub) · "Privacy" link; always visible above content
+- **Token tooltip** — hover on token balance in Profile modal explains what tokens are for
+- **Bug fix — cards invisible on old Android** — `aspect-ratio` CSS replaced with universal `paddingBottom: '133.33%'` hack in card collection thumbnails; fixes WebView on old Chinese/Android devices
+- **Bug fix — hand blank after mid-game page reload** — `get_hand` phase guard extended to include `'playing'` phase; backend now pushes `hand_update` immediately on `rejoin_game`
+- **Translation typo** — fixed mixed Georgian/Cyrillic characters in `tab_account.ru` (`Аккაунт` → `Аккаунт`)
+
+### v1.6 — Social Layer, Achievements & Polish
 - **Friends list** — search players, send/accept/decline requests, remove friends, real-time online status via socket presence
 - **Lobby chat** — global floating chat panel (bottom-right), last 50 messages in memory, login required to send, 4 msg / 5 s rate limit
 - **Player blocking** — block from Friends tab or in-game stats popup; blocked users silently filtered in all social contexts

@@ -636,7 +636,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-      style={{ background: 'var(--lobby-gradient)' }}>
+      style={{ background: 'var(--lobby-gradient)', paddingBottom: 52 }}>
       <style>{`
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes sf1{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
@@ -666,7 +666,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
       ))}
 
       {/* ── Hero ── */}
-      <div className="flex flex-col items-center text-center" style={{ marginBottom: isSmall ? 20 : 128 }}>
+      <div className="flex flex-col items-center text-center" style={{ marginBottom: isSmall ? 12 : 20 }}>
         <CardFan scale={isSmall ? 0.65 : 1} />
         <div style={{ marginTop: isSmall ? 12 : 32 }}>
           <h1 className="font-black tracking-[0.16em] leading-none"
@@ -685,7 +685,14 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
         )}
       </div>
 
-      {/* ── 4 Buttons ── */}
+      {/* ── Value proposition ── */}
+      <div style={{ textAlign: 'center', marginBottom: isSmall ? 16 : 32, padding: '0 24px', maxWidth: 480 }}>
+        <p style={{ fontSize: isSmall ? 11 : 13, fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: '#c9a84c', opacity: 0.8, marginBottom: 6 }}>
+          {t('landing_pitch')}
+        </p>
+      </div>
+
+      {/* ── Buttons ── */}
       {isSmall ? (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10, width: '100%', padding: '0 16px' }}>
           <LobbyBtn color="gold"  theme={theme} fluid onClick={() => openModal('play')}>{t('nav_play')}</LobbyBtn>
@@ -700,39 +707,46 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
               : t('nav_profile')
             }
           </LobbyBtn>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <LobbyBtn color="blue" theme={theme} fluid onClick={() => setShowTutorial(true)}>❓ {t('nav_how_to_play')}</LobbyBtn>
+          </div>
         </div>
       ) : (
-        <div className="flex items-center flex-wrap justify-center px-6" style={{ gap: 48 }}>
-          <LobbyBtn color="gold"  theme={theme} onClick={() => openModal('play')}>{t('nav_play')}</LobbyBtn>
-          <LobbyBtn color="blue"  theme={theme} onClick={() => openModal('collection')}>{t('nav_collection')}</LobbyBtn>
-          <LobbyBtn color="blue"  theme={theme} onClick={() => openModal('leaderboard')}>{t('nav_leaderboard')}</LobbyBtn>
-          <LobbyBtn color="slate" theme={theme} badge={user?.username ?? t('guest_badge')} onClick={() => openModal('profile')}>
-            {user
-              ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-                  <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(201,168,76,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>{PRESET_AVATARS[user.avatarId] ?? '🃏'}</span>
-                  {t('nav_profile')}
-                </span>
-              : t('nav_profile')
-            }
-          </LobbyBtn>
-        </div>
+        <>
+          <div className="flex items-center flex-wrap justify-center px-6" style={{ gap: 48 }}>
+            <LobbyBtn color="gold"  theme={theme} onClick={() => openModal('play')}>{t('nav_play')}</LobbyBtn>
+            <LobbyBtn color="blue"  theme={theme} onClick={() => openModal('collection')}>{t('nav_collection')}</LobbyBtn>
+            <LobbyBtn color="blue"  theme={theme} onClick={() => openModal('leaderboard')}>{t('nav_leaderboard')}</LobbyBtn>
+            <LobbyBtn color="slate" theme={theme} badge={user?.username ?? t('guest_badge')} onClick={() => openModal('profile')}>
+              {user
+                ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                    <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(201,168,76,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>{PRESET_AVATARS[user.avatarId] ?? '🃏'}</span>
+                    {t('nav_profile')}
+                  </span>
+                : t('nav_profile')
+              }
+            </LobbyBtn>
+            <LobbyBtn color="blue" theme={theme} onClick={() => setShowTutorial(true)}>❓ {t('nav_how_to_play')}</LobbyBtn>
+          </div>
+        </>
       )}
 
-      {/* ── How to Play link ── */}
-      <button onClick={() => setShowTutorial(true)}
-        className="text-xs uppercase tracking-widest font-bold transition-all hover:opacity-90 active:scale-[0.97]"
-        style={{
-          color:        theme === 'light' ? '#0a0806' : 'rgba(201,168,76,0.65)',
-          background:   theme === 'light' ? 'rgba(255,255,255,0.82)' : 'none',
-          border:       `1px solid ${theme === 'light' ? 'rgba(10,8,6,0.45)' : 'rgba(201,168,76,0.18)'}`,
-          borderRadius: '0.75rem',
-          cursor:       'pointer',
-          marginTop:    isSmall ? 8 : 14,
-          padding:      '8px 22px',
-          letterSpacing: '0.14em',
-        }}>
-        ❓ {t('nav_how_to_play')}
-      </button>
+      {/* ── About ── */}
+      <div style={{ textAlign: 'center', maxWidth: 480, padding: isSmall ? '0 20px' : '0 24px', marginTop: isSmall ? 20 : 36 }}>
+        <div style={{ borderTop: '1px solid', borderImage: 'linear-gradient(to right, transparent, rgba(201,168,76,0.2), transparent) 1', marginBottom: isSmall ? 16 : 24 }} />
+        <p style={{ fontSize: isSmall ? 11 : 12, color: 'var(--lobby-sub-color)', lineHeight: 1.7, marginBottom: 10 }}>{t('about_p1')}</p>
+        <p style={{ fontSize: isSmall ? 11 : 12, color: 'var(--lobby-sub-color)', lineHeight: 1.7, marginBottom: 10 }}>{t('about_p2')}</p>
+        <p style={{ fontSize: isSmall ? 11 : 12, color: 'var(--lobby-sub-color)', lineHeight: 1.7 }}>{t('about_p3')}</p>
+      </div>
+
+      {/* ── Footer ── */}
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, textAlign: 'center', padding: '10px 16px', pointerEvents: 'none' }}>
+        <span style={{ fontSize: 11, color: theme === 'light' ? 'rgba(10,8,6,0.35)' : 'rgba(255,255,255,0.22)', letterSpacing: '0.06em' }}>
+          {t('footer_made_by')} <a href="https://github.com/K0T137" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', pointerEvents: 'auto' }}>K0T137</a>
+          {' · '}
+          <a href="/privacy.html" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline', pointerEvents: 'auto' }}>Privacy</a>
+        </span>
+      </div>
 
       {/* ════════════════ PLAY MODAL ════════════════ */}
       {modal === 'play' && (
@@ -1230,7 +1244,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
 
                   {/* Stats */}
                   {userStats ? (<>
-                    <div style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.04))', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 16, padding: '16px 20px', textAlign: 'center' }}>
+                    <div title={t('token_tooltip')} style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.04))', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 16, padding: '16px 20px', textAlign: 'center', cursor: 'help' }}>
                       <div className="text-[9px] uppercase tracking-[0.22em] mb-1" style={{ color: '#c9a84c' }}>{t('stat_tokens')}</div>
                       <div className="text-5xl font-black tabular-nums" style={{ color: (userStats.rating ?? 0) >= 0 ? '#c9a84c' : '#ef4444' }}>
                         {userStats.rating ?? 0}

@@ -236,7 +236,7 @@ const t = {
   tab_me:            { en: 'Me',                     ka: 'მე',                    ru: 'Я'                     },
   tab_stats:         { en: 'Stats',                  ka: 'სტატისტიკა',            ru: 'Статистика'            },
   tab_history:       { en: 'History',                ka: 'ისტორია',               ru: 'История'               },
-  tab_account:       { en: 'Account',                ka: 'ანგარიში',              ru: 'Аккაунт'               },
+  tab_account:       { en: 'Account',                ka: 'ანგარიში',              ru: 'Аккаунт'               },
   history_no_games:  { en: 'No games yet',           ka: 'თამაში ჯერ არ არის',    ru: 'Игр пока нет'          },
   history_ranked:    { en: 'Ranked',                 ka: 'რეიტინგული',            ru: 'Рейтинг'               },
 
@@ -362,6 +362,13 @@ const t = {
   or_divider:        { en: 'or',                     ka: 'ან',                    ru: 'или'                   },
   play_as_guest:     { en: 'Or just enter a name in the Play screen to play as a guest.', ka: 'ან შეიყვანე სახელი თამაშის ეკრანზე სტუმრად.', ru: 'Или введите имя на экране «Играть» для гостевой игры.' },
   tagline:           { en: 'Contract poker · Georgian style', ka: 'კონტრაქტი პოკერი · ქართული სტილი', ru: 'Контракт-покер · Грузинский стиль' },
+  landing_pitch:     { en: 'Free-to-play · 4 players · Skill-based', ka: 'უფასო · 4 მოთამაშე · უნარებზე დაფუძნებული', ru: 'Бесплатно · 4 игрока · На мастерстве' },
+  landing_desc:      { en: 'A Georgian contract card game.', ka: 'ქართული საკონტრაქტო კარტის თამაში.', ru: 'Грузинская карточная игра на контракт.' },
+  footer_made_by:    { en: 'Made by', ka: 'შექმნა', ru: 'Создано' },
+  token_tooltip:     { en: 'Tokens unlock future card designs and cosmetics', ka: 'ტოკენები ხსნის სამომავლო ბარათების დიზაინებს და კოსმეტიკას', ru: 'Токены открывают будущие дизайны карт и косметику' },
+  about_p1:          { en: 'My name is Konstantine and I\'m from Georgia, and I\'ve been living abroad since 2013. The thing I miss most is playing Joker with friends. Everything I found online was cluttered with ads and felt nothing like the real game — so I built my own.', ka: 'მე მქვია კონსტანტინე და ვარ საქართველოდან. 2013 წლიდან ვცხოვრობ საზღვარგარეთ. ყველაზე მეტად მეგობრებთან ჯოკერის თამაში მენატრება. ყველაფერი, რაც ინტერნეტში ვიპოვე, სავსე იყო რეკლამებით და საერთოდ არ ჰგავდა ნამდვილ თამაშს — ამიტომ საკუთარი გავაკეთე.', ru: 'Меня зовут Константин, я из Грузии и живу за рубежом с 2013 года. Больше всего мне не хватало игры в Джокер с друзьями. Всё, что я находил в интернете, было перегружено рекламой и совсем не ощущалось как настоящая игра — поэтому я решил сделать свою.' },
+  about_p2:          { en: 'This is a personal side project. It runs entirely on my own time and hosting budget. There are no ads, no in-app purchases, and no investors.', ka: 'ეს არის პირადი გვერდითი პროექტი, რომელსაც ვავითარებ თავისუფალ დროს და საკუთარი ხარჯებით ვაფინანსებ. არ აქვს რეკლამები, შიდა შესყიდვები ან ინვესტორები.', ru: 'Это личный независимый проект, который я развиваю в своё свободное время и оплачиваю из собственного кармана. Здесь нет рекламы, микротранзакций и инвесторов.' },
+  about_p3:          { en: 'If you enjoy the game, the best thing you can do is tell a friend. That\'s genuinely the only way this grows.', ka: 'თუ თამაში მოგეწონა, საუკეთესო მხარდაჭერა ჩემთვის არის, რომ მეგობარს მოუყვე ამის შესახებ. სწორედ ასე იზრდება ეს პროექტი.', ru: 'Если вам нравится игра — лучшая поддержка для меня это рассказать о ней друзьям. Именно так проект растёт.' },
 }
 
 export default t
