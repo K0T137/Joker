@@ -1041,27 +1041,35 @@ io.on('connection', (socket) => {
 
   // ── Lobby chat ─────────────────────────────────────────────────────────────
   socket.on('lobby_join', () => {
-    socket.join('lobby');
-    socket.emit('lobby_history', lobbyMessages.slice(-50));
+    try {
+      socket.join('lobby');
+      socket.emit('lobby_history', lobbyMessages.slice(-50));
+    } catch (err) {
+      console.error('lobby_join error:', err);
+    }
   });
 
   socket.on('lobby_chat_send', (text) => {
-    if (!socket.authUserId || typeof text !== 'string') return;
-    const clean = text.trim().slice(0, 200);
-    if (!clean) return;
+    try {
+      if (!socket.authUserId || typeof text !== 'string') return;
+      const clean = text.trim().slice(0, 200);
+      if (!clean) return;
 
-    // Rate limit: 4 messages per 5 seconds
-    const now = Date.now();
-    const rl = lobbyChatRates.get(socket.id) ?? { count: 0, windowStart: now };
-    if (now - rl.windowStart > 5000) { rl.count = 0; rl.windowStart = now; }
-    rl.count++;
-    lobbyChatRates.set(socket.id, rl);
-    if (rl.count > 4) return;
+      // Rate limit: 4 messages per 5 seconds
+      const now = Date.now();
+      const rl = lobbyChatRates.get(socket.id) ?? { count: 0, windowStart: now };
+      if (now - rl.windowStart > 5000) { rl.count = 0; rl.windowStart = now; }
+      rl.count++;
+      lobbyChatRates.set(socket.id, rl);
+      if (rl.count > 4) return;
 
-    const msg = { userId: socket.authUserId, username: socket.authUsername, text: clean, ts: now };
-    lobbyMessages.push(msg);
-    if (lobbyMessages.length > 50) lobbyMessages.shift();
-    io.to('lobby').emit('lobby_message', msg);
+      const msg = { userId: socket.authUserId, username: socket.authUsername, text: clean, ts: now };
+      lobbyMessages.push(msg);
+      if (lobbyMessages.length > 50) lobbyMessages.shift();
+      io.to('lobby').emit('lobby_message', msg);
+    } catch (err) {
+      console.error('lobby_chat_send error:', err);
+    }
   });
 
   socket.on('create_game', async (data, callback) => {
@@ -1846,6 +1854,7 @@ setInterval(() => {
       loggers.get(roomId)?.log('room_cleaned', { reason: 'inactivity' });
       loggers.delete(roomId);
       gameRooms.delete(roomId);
+      gameStartedAt.delete(roomId);
       dbGameIds.delete(roomId);
       dbRoundIds.delete(roomId);
       if (process.env.DATABASE_URL) markRoomAbandoned(roomId).catch(() => {});
