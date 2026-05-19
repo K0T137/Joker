@@ -1245,12 +1245,12 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                   {/* Stats */}
                   {userStats ? (<>
                     <div title={t('token_tooltip')} style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.04))', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 16, padding: '16px 20px', textAlign: 'center', cursor: 'help' }}>
-                      <div className="text-[9px] uppercase tracking-[0.22em] mb-1" style={{ color: '#c9a84c' }}>{t('stat_tokens')}</div>
-                      <div className="text-5xl font-black tabular-nums" style={{ color: (userStats.rating ?? 0) >= 0 ? '#c9a84c' : '#ef4444' }}>
+                      <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.22em', marginBottom: 4, color: '#c9a84c' }}>{t('stat_tokens')}</div>
+                      <div style={{ fontSize: 48, fontWeight: 900, fontVariantNumeric: 'tabular-nums', color: (userStats.rating ?? 0) >= 0 ? '#c9a84c' : '#ef4444', lineHeight: 1 }}>
                         {userStats.rating ?? 0}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                       {[
                         { label: t('stat_games_played'), value: userStats.games_played ?? 0 },
                         { label: t('stat_winrate'),      value: `${userStats.win_rate ?? 0}%` },
@@ -1260,44 +1260,43 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                         { label: t('stat_time'),         value: (userStats.time_played_minutes ?? 0) < 60 ? `${userStats.time_played_minutes ?? 0}m` : `${Math.round((userStats.time_played_minutes ?? 0) / 60)}h` },
                       ].map(({ label, value, gold }) => (
                         <div key={label} style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12, padding: '14px 16px' }}>
-                          <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: '#364060' }}>{label}</div>
-                          <div className="text-2xl font-bold tabular-nums" style={{ color: gold ? '#c9a84c' : '#e8d5a3' }}>{value}</div>
+                          <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4, color: '#364060' }}>{label}</div>
+                          <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: gold ? '#c9a84c' : '#e8d5a3' }}>{value}</div>
                         </div>
                       ))}
                     </div>
                     <div style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12, padding: '14px 16px' }}>
-                      <div className="text-[9px] uppercase tracking-wider mb-3" style={{ color: '#364060' }}>{t('stat_placements')}</div>
-                      <div className="flex gap-1">
+                      <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12, color: '#364060' }}>{t('stat_placements')}</div>
+                      <div style={{ display: 'flex', gap: 4 }}>
                         {[
                           { label: '1st', count: userStats.place1_count ?? 0, color: '#c9a84c' },
                           { label: '2nd', count: userStats.place2_count ?? 0, color: '#9a9aa8' },
                           { label: '3rd', count: userStats.place3_count ?? 0, color: '#a06840' },
                           { label: '4th', count: userStats.place4_count ?? 0, color: '#364060' },
                         ].map(({ label, count, color }) => (
-                          <div key={label} className="flex-1 flex flex-col items-center gap-1 py-1">
-                            <div className="text-xl font-black tabular-nums" style={{ color }}>{count}</div>
-                            <div className="text-[9px] font-bold uppercase" style={{ color: '#2e4060' }}>{label}</div>
+                          <div key={label} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '4px 0' }}>
+                            <div style={{ fontSize: 20, fontWeight: 900, fontVariantNumeric: 'tabular-nums', color }}>{count}</div>
+                            <div style={{ fontSize: 9, fontWeight: 700, textTransform: 'uppercase', color: '#2e4060' }}>{label}</div>
                           </div>
                         ))}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2">
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
                       <div style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12, padding: '14px 16px' }}>
-                        <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: '#364060' }}>{t('stat_full_takes')}</div>
-                        <div className="text-2xl font-bold tabular-nums" style={{ color: '#e8d5a3' }}>{userStats.full_take_count ?? 0}</div>
+                        <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4, color: '#364060' }}>{t('stat_full_takes')}</div>
+                        <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: '#e8d5a3' }}>{userStats.full_take_count ?? 0}</div>
                       </div>
                       <div style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12, padding: '14px 16px' }}>
-                        <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: '#364060' }}>{t('stat_zero_bids')}</div>
-                        <div className="text-2xl font-bold tabular-nums" style={{ color: '#e8d5a3' }}>{userStats.zero_bid_success_count ?? 0}</div>
+                        <div style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 4, color: '#364060' }}>{t('stat_zero_bids')}</div>
+                        <div style={{ fontSize: 22, fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: '#e8d5a3' }}>{userStats.zero_bid_success_count ?? 0}</div>
                       </div>
                     </div>
                   </>) : (
-                    <p className="text-xs text-center py-6" style={{ color: '#364060' }}>{t('stat_no_games')}</p>
+                    <p style={{ fontSize: 12, textAlign: 'center', padding: '24px 0', color: '#364060' }}>{t('stat_no_games')}</p>
                   )}
 
                   <button onClick={logout}
-                    className="w-full rounded-xl font-semibold text-base transition-all hover:text-red-400 flex items-center justify-center"
-                    style={{ height: 56, background: 'rgba(255,255,255,0.04)', border: '1px solid #1e2b40', color: '#4a5570' }}>
+                    style={{ width: '100%', height: 56, background: 'rgba(255,255,255,0.04)', border: '1px solid #1e2b40', borderRadius: '0.75rem', color: '#4a5570', fontSize: 15, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     {t('signout')}
                   </button>
                 </div>
