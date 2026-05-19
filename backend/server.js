@@ -1881,8 +1881,12 @@ io.on('connection', (socket) => {
 // Serve the built React frontend (production)
 const distPath = join(__dirname, '..', 'frontend', 'dist');
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
-  app.get('*', (_req, res) => res.sendFile(join(distPath, 'index.html')));
+  // Cache hashed assets forever; never cache index.html so deploys take effect immediately
+  app.use(express.static(distPath, { index: false, immutable: true, maxAge: '1y' }));
+  app.get('*', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.sendFile(join(distPath, 'index.html'));
+  });
   console.log('Serving frontend from', distPath);
 }
 
