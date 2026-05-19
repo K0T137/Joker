@@ -52,6 +52,8 @@ Last updated: 2026-05-19
 - Bug fix: hand blank after mid-game page reload
 - Translation typo fix (tab_account.ru)
 - Backend: try/catch on lobby socket handlers, gameStartedAt map leak fixed
+- Password reset via email (`/api/auth/forgot-password` + `/api/auth/reset-password`)
+- Heartbeat layer — server pings every 15 s; substitutes after 2 missed beats
 
 ---
 
@@ -99,7 +101,7 @@ All E-series items are complete.
 | # | Item | Effort | Notes |
 |---|------|--------|-------|
 | G5 | "Joker" title/crown — #1 leaderboard player holds it until dethroned | S | Badge next to username everywhere; drives competitive engagement |
-| G6 | Richer stat tracking — perfect9Count, perfect8Count, place1/2/3Count, eliminatedTopCount | M | Surface on profile page |
+| G6 | Richer stat tracking — perfect9Count, perfect8Count, eliminatedTopCount | M | place1/2/3/4_count columns already in DB; need perfect9/8 and eliminatedTop columns + logic |
 | G7 | Insurance / ragequit penalty — token stake on join, forfeited on quit, split to winners | M | Directly solves ragequit problem; requires ranked mode |
 | G8 | Activity reward sharing — 90%+ activity earns share of AFK forfeits | M | Depends on G7 |
 
@@ -132,7 +134,7 @@ All E-series items are complete.
 
 | # | Item | Effort | Notes |
 |---|------|--------|-------|
-| Q1 | Email verification + password reset via email | M | SMTP or SendGrid |
+| Q1 | Email verification | M | Password reset already done; need verify-on-register flow (SMTP or SendGrid) |
 | Q2 | Push notifications (OneSignal) — friend request, game invite, your turn | M | |
 | Q3 | Multi-device session management — see and disconnect old devices | S | |
 | Q4 | In-game protest / flag illegal move | M | |
