@@ -102,6 +102,8 @@ export default function App() {
       randomizationFactor: 0.5,
     })
 
+    s.on('heartbeat', () => s.emit('heartbeat_ack'))
+
     s.on('connect', () => {
       // Re-authenticate social identity on (re)connect
       const token = localStorage.getItem('joker_token')

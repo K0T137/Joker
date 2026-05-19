@@ -103,6 +103,8 @@ const dbRoundIds         = new Map(); // roomId    → UUID of current rounds ro
 const dbBidOrders        = new Map(); // roomId    → running bid order counter
 const chatRateLimits     = new Map(); // socketId  → { count, windowStart }
 const onlineUsers        = new Map(); // userId    → socketId
+const heartbeatIntervals = new Map(); // roomId    → setInterval handle (15s liveness ping)
+const heartbeatMissed    = new Map(); // socketId  → consecutive missed heartbeat count
 const lobbyMessages      = [];        // last 50 lobby chat messages
 const lobbyChatRates     = new Map(); // socketId  → { count, windowStart }
 
@@ -437,6 +439,34 @@ function startSyncInterval(roomId) {
 function clearSyncInterval(roomId) {
   const id = syncIntervals.get(roomId);
   if (id != null) { clearInterval(id); syncIntervals.delete(roomId); }
+}
+
+function startHeartbeat(roomId) {
+  clearHeartbeat(roomId);
+  const id = setInterval(() => {
+    const gr = gameRooms.get(roomId);
+    if (!gr || gr.status !== 'playing') return;
+    for (const [pid, p] of gr.players) {
+      if (p.isBot || !p.socketId || gr.isSubstituted(pid)) continue;
+      const missed = (heartbeatMissed.get(p.socketId) ?? 0) + 1;
+      heartbeatMissed.set(p.socketId, missed);
+      io.to(p.socketId).emit('heartbeat');
+      if (missed >= 2 && !substitutionTimers.has(pid)) {
+        console.warn(`[heartbeat] ${pid} missed ${missed} beats in ${roomId} — substituting`);
+        gr.setSubstituted(pid, true);
+        loggers.get(roomId)?.log('player_substituted', { playerId: pid, reason: 'frozen' });
+        io.to(roomId).emit('player_substituted', { playerId: pid, reason: 'disconnected' });
+        if (process.env.DATABASE_URL) incrementAfkCount(p.userId).catch(() => {});
+        scheduleBotTurn(roomId);
+      }
+    }
+  }, 15_000);
+  heartbeatIntervals.set(roomId, id);
+}
+
+function clearHeartbeat(roomId) {
+  const id = heartbeatIntervals.get(roomId);
+  if (id != null) { clearInterval(id); heartbeatIntervals.delete(roomId); }
 }
 
 // ── Substitution helpers ──────────────────────────────────────────────────────
@@ -950,6 +980,7 @@ function handleRoundEnd(roomId, gameRoom) {
     }
 
     clearSyncInterval(roomId);
+    clearHeartbeat(roomId);
     return false;
   }
 
@@ -987,6 +1018,7 @@ function startGameInRoom(roomId, gameRoom) {
     drawnCards:     atuzovka.drawnCards,
   });
   io.to(roomId).emit('game_started', { gameState: gs.getState() });
+  startHeartbeat(roomId);
 
   // First round is always 1-card (never trump_selection), but use helper for consistency
   emitRoundStarted(roomId, gameRoom);
@@ -1715,6 +1747,10 @@ io.on('connection', (socket) => {
     callback?.({ success: true, state: gr.gameState?.getState() ?? null, players: formatPlayers(gr) });
   });
 
+  socket.on('heartbeat_ack', () => {
+    heartbeatMissed.set(socket.id, 0);
+  });
+
   // Intentional leave — player chose to go back to lobby.
   // We mark them disconnected immediately (no substitution delay) and leave the socket.io room
   // so they stop receiving broadcasts from the old room.
@@ -1732,6 +1768,7 @@ io.on('connection', (socket) => {
 
         if (shouldDestroy) {
           clearSyncInterval(roomId);
+          clearHeartbeat(roomId);
           cancelBotTurn(roomId);
           cancelRoomStart(roomId);
           chatHistories.delete(roomId);
@@ -1767,6 +1804,7 @@ io.on('connection', (socket) => {
 
       chatRateLimits.delete(socket.id);
       lobbyChatRates.delete(socket.id);
+      heartbeatMissed.delete(socket.id);
 
       // Remove from online tracking and notify friends
       if (socket.authUserId && onlineUsers.get(socket.authUserId) === socket.id) {
@@ -1795,6 +1833,7 @@ io.on('connection', (socket) => {
           // Clean up any timers for this room/player before deleting
           cleanupPlayerTimers(roomId, playerId);
           clearSyncInterval(roomId);
+          clearHeartbeat(roomId);
           cancelBotTurn(roomId);
           cancelRoomStart(roomId);
           chatHistories.delete(roomId);
@@ -1848,6 +1887,7 @@ setInterval(() => {
   for (const [roomId, room] of gameRooms) {
     if (room.shouldCleanup()) {
       clearSyncInterval(roomId);
+      clearHeartbeat(roomId);
       cancelBotTurn(roomId);
       cancelRoomStart(roomId);
       chatHistories.delete(roomId);

@@ -68,17 +68,7 @@ Items are grouped by area. Effort: S = < 1 day · M = 1–3 days · L = week+
 
 ### Engine Resilience
 
-| # | Item | Effort | Notes |
-|---|------|--------|-------|
-| E1 | Reconnect jitter — spread client reconnects on server restart | S | Pass `reconnectionDelay/Max/randomizationFactor` to `io()` in frontend; prevents thundering herd |
-| E2 | Reconnect payload try/catch in `GameRoom.getReconnectPayload()` | S | Guards against crash if gameState partially initialized on rejoin |
-| E3 | State guard audit — ensure every socket handler rejects wrong-phase events | S | Partial guards exist; audit for gaps across all handlers |
-| E4 | Bot timer leak on rapid disconnect/reconnect | S | `unsubstitute()` should cancel `botTurnTimers` before re-assigning control |
-| E5 | Kicked-player memory — `kickedPlayerIds` Set on GameRoom; reject rejoin | S | Kicked players can currently rejoin immediately |
-| E6 | UNRECOVERABLE_STATE detector in sync interval | M | Check for stuck bidding/playing phase; force-advance or end game |
-| E7 | Room cleanup when all humans gone during play | S | `shouldCleanup()` leaves zombie 'playing' rooms in /api/rooms |
-| E8 | AFK rate — persist lifetime afk count to DB on each substitution event | M | `afk_count` column exists; surface in stats and factor into matchmaking |
-| E9 | Heartbeat layer (server→client every 15 s, client echoes) | M | Socket.IO covers most cases; low priority |
+All E-series items are complete.
 
 ### Code Structure
 
