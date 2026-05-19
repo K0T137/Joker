@@ -19,7 +19,7 @@ import GameAnnouncementOverlay from './overlays/GameAnnouncementOverlay'
 import RoundEndOverlay from './overlays/RoundEndOverlay'
 import GameEndModal from './overlays/GameEndModal'
 
-export default function GameRoom({ socket, gameState, playerId, isSpectator = false, onLeaveGame, onPlayAgain = null, onRematch = null, onSpectateGame, roundHistory = [], lastTrick = null, atuzovka = null, trickWinnerId = null, isCollecting = false, dealerPlayerId = null, initialDealerPlayerId = null, gameAnnouncement = null, jokerAnnouncement = null, firstPlayerId = null, gameLog = [], chatMessages = [], onSendChat = null, isMuted = false, onToggleMute = null, theme = 'dark', onToggleTheme = null, gameEndStats = null, myPlayerId = null, hishtPenalty = '200', gameMode = 'normal', playInPairs = false, isRanked = false, onKickPlayer = null, autoStartAt = null, turnTimer = null, countdown = null, onOpenCabinet = null, roundEndData = null }) {
+export default function GameRoom({ socket, gameState, playerId, isSpectator = false, onLeaveGame, onPlayAgain = null, onRematch = null, onSpectateGame, roundHistory = [], lastTrick = null, atuzovka = null, trickWinnerId = null, isCollecting = false, dealerPlayerId = null, initialDealerPlayerId = null, gameAnnouncement = null, jokerAnnouncement = null, firstPlayerId = null, gameLog = [], chatMessages = [], onSendChat = null, isMuted = false, onToggleMute = null, theme = 'dark', onToggleTheme = null, gameEndStats = null, myPlayerId = null, hishtPenalty = '200', gameMode = 'normal', playInPairs = false, isRanked = false, onKickPlayer = null, autoStartAt = null, turnTimer = null, countdown = null, onOpenCabinet = null, onOpenCardPreview = null, roundEndData = null }) {
   const t = useT()
   const { API_URL, user } = useAuth()
   const { suitHex, fourColor, toggleFourColor, deckTheme, deckThemeIdx, cycleDeckTheme, tableTheme, cycleTableTheme } = usePrefs()
@@ -671,6 +671,7 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
               {!isSpectator && <button onClick={cycleTableTheme} style={{ ...btn40 }}>🎴</button>}
               {!isSpectator && <button onClick={toggleFourColor} style={{ ...btn40, color: fourColor ? '#3b82f6' : '#4a4a5a', border: `1px solid ${fourColor ? '#3b82f6' : '#2a2a38'}` }}>♦</button>}
               {!isSpectator && <button onClick={() => setScorePanelOpen(o => !o)} style={{ ...btn40, color: '#c9a84c' }}>📊</button>}
+              {onOpenCardPreview && <button onClick={onOpenCardPreview} style={{ ...btn40, color: '#6a6a8a' }}>🃏</button>}
               <LangToggle compact />
               <ThemeToggle theme={theme} onToggle={onToggleTheme} style={{ width: 40, height: 40, padding: 0 }} />
             </div>

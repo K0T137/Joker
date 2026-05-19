@@ -684,21 +684,6 @@ export default function App() {
 
   const handleToggleMute = () => setIsMuted(m => !m)
 
-  const devButton = (
-    <button
-      onClick={() => setDevPreviewOpen(true)}
-      title="Card Preview (dev)"
-      className="fixed top-3 right-4 z-50"
-      style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '7px 10px', borderRadius: '0.625rem',
-        background: 'rgba(8,8,12,0.84)', border: '1px solid #2a2a38',
-        cursor: 'pointer', fontSize: 16, lineHeight: 1, color: '#6a6a8a',
-      }}
-    >
-      🃏
-    </button>
-  )
 
   const [isPortraitMobile, setIsPortraitMobile] = useState(
     () => window.innerWidth < window.innerHeight && window.innerWidth < 600
@@ -763,7 +748,6 @@ export default function App() {
           setLobbyChatOpen={setLobbyChatOpen}
         />
         {topBar}
-        {devButton}
         {cabinetOpen && <Cabinet onClose={() => setCabinetOpen(false)} onlineMap={onlineMap} />}
         {devPreviewOpen && <CardPreview onClose={() => setDevPreviewOpen(false)} />}
         {dailyBonus && <DailyBonusModal bonus={dailyBonus} onClose={() => setDailyBonus(null)} />}
@@ -856,6 +840,7 @@ export default function App() {
         onKickPlayer={handleKickPlayer}
         autoStartAt={autoStartAt}
         onOpenCabinet={() => setCabinetOpen(true)}
+        onOpenCardPreview={() => setDevPreviewOpen(true)}
         roundEndData={roundEndData}
       />
 
