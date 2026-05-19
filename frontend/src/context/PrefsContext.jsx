@@ -37,7 +37,7 @@ export function PrefsProvider({ children }) {
   )
 
   const [cardStyle, setCardStyleState] = useState(
-    () => localStorage.getItem('joker_cardstyle') ?? 'classic'
+    () => localStorage.getItem('joker_cardstyle') ?? 'pixel'
   )
 
   const setCardStyle = useCallback((style) => {
