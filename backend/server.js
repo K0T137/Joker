@@ -1924,6 +1924,10 @@ async function startup() {
       if (gameRooms.has(row.id)) continue;
       const gr = GameRoom.fromDB(row);
       if (gr.status === 'abandoned') continue;
+      if (gr.status === 'waiting') {
+        markRoomAbandoned(row.id).catch(() => {});
+        continue; // waiting rooms are useless after restart — players are gone
+      }
       gameRooms.set(row.id, gr);
       if (row.current_game_id) {
         dbGameIds.set(row.id, row.current_game_id);
