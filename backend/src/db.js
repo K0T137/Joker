@@ -700,6 +700,10 @@ export async function getUserAvatarId(userId) {
 }
 
 export async function getPlayerStats(userId) {
+  await pool.query(
+    `INSERT INTO player_stats (user_id) VALUES ($1) ON CONFLICT DO NOTHING`,
+    [userId]
+  )
   const { rows } = await pool.query(`
     SELECT u.id, u.username, u.created_at,
            ps.games_played, ps.games_won, ps.total_score,
