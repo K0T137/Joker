@@ -803,7 +803,7 @@ export default function App() {
         </div>
       )}
       {topBar}
-      {devButton}
+
       {cabinetOpen && <Cabinet onClose={() => setCabinetOpen(false)} onlineMap={onlineMap} />}
       {devPreviewOpen && <CardPreview onClose={() => setDevPreviewOpen(false)} />}
       <GameRoom
