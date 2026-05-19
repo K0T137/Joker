@@ -746,6 +746,7 @@ export default function App() {
           lobbyMessages={lobbyMessages}
           lobbyChatOpen={lobbyChatOpen}
           setLobbyChatOpen={setLobbyChatOpen}
+          onOpenCardPreview={() => setDevPreviewOpen(true)}
         />
         {topBar}
         {cabinetOpen && <Cabinet onClose={() => setCabinetOpen(false)} onlineMap={onlineMap} />}

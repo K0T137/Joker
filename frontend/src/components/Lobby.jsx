@@ -296,7 +296,7 @@ function OptionBtn({ active, onClick, children }) {
 }
 
 // ── Lobby Chat Panel ──────────────────────────────────────────────────────────
-function LobbyChatPanel({ socket, messages, open, setOpen }) {
+function LobbyChatPanel({ socket, messages, open, setOpen, onOpenCardPreview = null }) {
   const t    = useT()
   const { user } = useAuth()
   const [text, setText] = useState('')
@@ -363,26 +363,43 @@ function LobbyChatPanel({ socket, messages, open, setOpen }) {
           </div>
         </div>
       )}
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{
-          width: 48, height: 48, borderRadius: '50%',
-          background: open ? '#1a1a2a' : '#c9a84c',
-          border: open ? '2px solid #c9a84c' : 'none',
-          color: open ? '#c9a84c' : '#0a0a0f',
-          fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
-        }}
-        title={t('lobby_chat')}
-      >
-        💬
-      </button>
+      <div style={{ display: 'flex', gap: 8 }}>
+        {onOpenCardPreview && (
+          <button
+            onClick={onOpenCardPreview}
+            style={{
+              width: 48, height: 48, borderRadius: '50%',
+              background: 'rgba(8,8,12,0.84)', border: '1px solid #2a2a38',
+              color: '#6a6a8a', fontSize: 22, cursor: 'pointer',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+            }}
+            title="Card Preview"
+          >
+            🃏
+          </button>
+        )}
+        <button
+          onClick={() => setOpen(o => !o)}
+          style={{
+            width: 48, height: 48, borderRadius: '50%',
+            background: open ? '#1a1a2a' : '#c9a84c',
+            border: open ? '2px solid #c9a84c' : 'none',
+            color: open ? '#c9a84c' : '#0a0a0f',
+            fontSize: 22, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+          }}
+          title={t('lobby_chat')}
+        >
+          💬
+        </button>
+      </div>
     </div>
   )
 }
 
 // ── Main Lobby ────────────────────────────────────────────────────────────────
-export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuickStartWithBots, inviteRoomCode = null, onOpenCabinet = null, onlineMap = {}, socket = null, lobbyMessages = [], lobbyChatOpen = false, setLobbyChatOpen = null, theme: themeProp = null }) {
+export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuickStartWithBots, inviteRoomCode = null, onOpenCabinet = null, onlineMap = {}, socket = null, lobbyMessages = [], lobbyChatOpen = false, setLobbyChatOpen = null, onOpenCardPreview = null, theme: themeProp = null }) {
   const t = useT()
   const { lang } = useLang()
   const { user, setUser, updateUser, logout, API_URL } = useAuth()
@@ -1457,6 +1474,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
           messages={lobbyMessages}
           open={lobbyChatOpen}
           setOpen={setLobbyChatOpen}
+          onOpenCardPreview={onOpenCardPreview}
         />
       )}
     </div>
