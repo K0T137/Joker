@@ -3,7 +3,7 @@ import passport from 'passport'
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
-import pool, { claimDailyBonus, createPasswordResetToken, consumePasswordResetToken, getUserByEmail } from '../db.js'
+import pool, { claimDailyBonus, restoreLoginStreak, createPasswordResetToken, consumePasswordResetToken, getUserByEmail } from '../db.js'
 import { Resend } from 'resend'
 
 const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null
@@ -16,7 +16,7 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173'
 
 function makeJwt(user) {
   return jwt.sign(
-    { id: user.id, username: user.username, avatarId: user.avatar_id ?? 1, isGuest: false },
+    { id: user.id, username: user.username, email: user.email ?? null, avatarId: user.avatar_id ?? 1, isGuest: false },
     JWT_SECRET,
     { expiresIn: '30d' }
   )
@@ -142,12 +142,38 @@ router.get('/me', (req, res) => {
   const token  = header.startsWith('Bearer ') ? header.slice(7) : null
   if (!token) return res.status(401).json({ error: 'No token' })
   try {
-    const decoded = jwt.verify(token, JWT_SECRET)
-    // Fire-and-forget daily bonus — only grants once per calendar day
-    if (process.env.DATABASE_URL && decoded.id) {
-      claimDailyBonus(decoded.id).catch(() => {})
-    }
-    res.json(decoded)
+    res.json(jwt.verify(token, JWT_SECRET))
+  } catch {
+    res.status(401).json({ error: 'Invalid token' })
+  }
+})
+
+// GET /api/auth/daily-bonus — claim daily login reward and return streak info
+router.get('/daily-bonus', async (req, res) => {
+  if (!process.env.DATABASE_URL) return res.json({ claimed: false })
+  const header = req.headers.authorization ?? ''
+  const token  = header.startsWith('Bearer ') ? header.slice(7) : null
+  if (!token) return res.status(401).json({ error: 'No token' })
+  try {
+    const { id } = jwt.verify(token, JWT_SECRET)
+    const result = await claimDailyBonus(id)
+    res.json(result)
+  } catch {
+    res.status(401).json({ error: 'Invalid token' })
+  }
+})
+
+// POST /api/auth/restore-streak — spend 300 tokens to restore a broken streak
+router.post('/restore-streak', async (req, res) => {
+  if (!process.env.DATABASE_URL) return res.status(503).json({ error: 'DB not configured' })
+  const header = req.headers.authorization ?? ''
+  const token  = header.startsWith('Bearer ') ? header.slice(7) : null
+  if (!token) return res.status(401).json({ error: 'No token' })
+  try {
+    const { id } = jwt.verify(token, JWT_SECRET)
+    const result = await restoreLoginStreak(id)
+    if (!result.ok) return res.status(400).json({ error: result.reason })
+    res.json(result)
   } catch {
     res.status(401).json({ error: 'Invalid token' })
   }

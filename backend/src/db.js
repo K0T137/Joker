@@ -199,6 +199,8 @@ export async function runMigrations() {
     ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS zero_bid_success_count INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS honor_rate             INTEGER NOT NULL DEFAULT 100;
     ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS last_login_date        DATE;
+    ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS login_streak           INTEGER NOT NULL DEFAULT 0;
+    ALTER TABLE player_stats ADD COLUMN IF NOT EXISTS streak_restore_value   INTEGER NOT NULL DEFAULT 0;
     ALTER TABLE games        ADD COLUMN IF NOT EXISTS is_ranked              BOOLEAN NOT NULL DEFAULT false;
     ALTER TABLE player_game_log ADD COLUMN IF NOT EXISTS rating_change INTEGER;
     ALTER TABLE player_game_log ADD COLUMN IF NOT EXISTS new_rating    INTEGER;
@@ -766,33 +768,89 @@ export async function getPlayerGameLog(userId, limit = 20) {
   return rows
 }
 
-// Grant +100 tokens once per calendar day. Safe to call on every page load — the
-// WHERE clause ensures the UPDATE only fires when the date has actually changed.
+// Grant +100 tokens once per calendar day, track login streak.
+// Returns { claimed, daily, streak, weeklyBonus, restoreEligible, restoreStreakValue }
 export async function claimDailyBonus(userId) {
-  if (!userId) return 0
-  const today = new Date().toISOString().slice(0, 10) // YYYY-MM-DD UTC
+  if (!userId) return { claimed: false }
+  const today = new Date().toISOString().slice(0, 10)
 
-  // Try to update an existing row that hasn't claimed today yet
-  const { rowCount } = await pool.query(
+  await pool.query(`INSERT INTO player_stats (user_id) VALUES ($1) ON CONFLICT DO NOTHING`, [userId])
+
+  const { rows } = await pool.query(
+    `SELECT login_streak, streak_restore_value, last_login_date FROM player_stats WHERE user_id = $1`,
+    [userId]
+  )
+  const { login_streak = 0, streak_restore_value = 0, last_login_date } = rows[0] ?? {}
+
+  if (last_login_date) {
+    const gap = Math.round((new Date(today) - new Date(last_login_date)) / 86400000)
+    if (gap === 0) return { claimed: false }
+
+    let newStreak       = 1
+    let newRestoreValue = 0
+    let restoreEligible = false
+
+    if (gap === 1) {
+      newStreak = login_streak + 1
+    } else if (gap === 2) {
+      newRestoreValue = login_streak
+      restoreEligible = login_streak > 1
+    }
+
+    const weeklyBonus  = newStreak === 7 ? 1000 : 0
+    const bonusTokens  = 100 + weeklyBonus
+    const storedStreak = newStreak === 7 ? 0 : newStreak
+
+    await pool.query(
+      `UPDATE player_stats
+       SET rating               = COALESCE(rating, 0) + $2,
+           login_streak         = $3,
+           streak_restore_value = $4,
+           last_login_date      = $5::date,
+           updated_at           = NOW()
+       WHERE user_id = $1`,
+      [userId, bonusTokens, storedStreak, newRestoreValue, today]
+    )
+    return { claimed: true, daily: 100, streak: newStreak, weeklyBonus, restoreEligible, restoreStreakValue: newRestoreValue }
+  }
+
+  // First login or no date on record
+  await pool.query(
     `UPDATE player_stats
-     SET rating          = COALESCE(rating, 0) + 100,
-         last_login_date = $2::date,
-         updated_at      = NOW()
-     WHERE user_id = $1
-       AND (last_login_date IS NULL OR last_login_date < $2::date)`,
+     SET rating               = COALESCE(rating, 0) + 100,
+         login_streak         = 1,
+         streak_restore_value = 0,
+         last_login_date      = $2::date,
+         updated_at           = NOW()
+     WHERE user_id = $1`,
     [userId, today]
   )
-  if (rowCount > 0) return 100
+  return { claimed: true, daily: 100, streak: 1, weeklyBonus: 0, restoreEligible: false, restoreStreakValue: 0 }
+}
 
-  // Row exists but was already claimed today, or row doesn't exist yet.
-  // Insert with the bonus; ON CONFLICT DO NOTHING handles the "already claimed" case.
-  const { rowCount: inserted } = await pool.query(
-    `INSERT INTO player_stats (user_id, rating, last_login_date, updated_at)
-     VALUES ($1, 100, $2::date, NOW())
-     ON CONFLICT (user_id) DO NOTHING`,
-    [userId, today]
+// Spend 300 tokens to restore a broken streak (only when streak_restore_value > 0)
+export async function restoreLoginStreak(userId) {
+  if (!userId) return { ok: false, reason: 'invalid' }
+  const { rows } = await pool.query(
+    `SELECT login_streak, streak_restore_value, rating FROM player_stats WHERE user_id = $1`,
+    [userId]
   )
-  return inserted > 0 ? 100 : 0
+  if (!rows[0]) return { ok: false, reason: 'not_found' }
+  const { streak_restore_value, rating } = rows[0]
+  if (!streak_restore_value) return { ok: false, reason: 'not_eligible' }
+  if ((rating ?? 0) < 300)   return { ok: false, reason: 'insufficient_tokens' }
+
+  const restoredStreak = streak_restore_value + 1
+  await pool.query(
+    `UPDATE player_stats
+     SET rating               = rating - 300,
+         login_streak         = $2,
+         streak_restore_value = 0,
+         updated_at           = NOW()
+     WHERE user_id = $1`,
+    [userId, restoredStreak]
+  )
+  return { ok: true, newStreak: restoredStreak, cost: 300 }
 }
 
 // ── Social: search, friends, blocking ─────────────────────────────────────────

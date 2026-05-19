@@ -4,7 +4,7 @@ import { useT, useLang } from '../context/LangContext'
 import { pickGuestName } from '../guestNames'
 import { usePrefs, TABLE_THEMES } from '../context/PrefsContext'
 import { DECK_THEMES } from './Card'
-import { PRESET_AVATARS } from './Cabinet'
+import { PRESET_AVATARS, FriendsTab } from './Cabinet'
 import { useTheme } from './ThemeToggle'
 import TutorialModal from './overlays/TutorialModal'
 
@@ -59,7 +59,7 @@ function Modal({ title, onClose, children, size = 'md', fitContent = false }) {
 
   const SIZE = {
     sm:  { w: 'min(92vw, 460px)',  h: 'clamp(260px, 80dvh, 440px)' },
-    md:  { w: 'min(92vw, 560px)',  h: 'clamp(280px, 85dvh, 520px)' },
+    md:  { w: 'min(92vw, 460px)',  h: 'clamp(280px, 68dvh, 480px)' },
     lg:  { w: 'min(92vw, 660px)',  h: 'clamp(300px, 85dvh, 560px)' },
   }
   const s = SIZE[size] ?? SIZE.md
@@ -74,7 +74,7 @@ function Modal({ title, onClose, children, size = 'md', fitContent = false }) {
         className="relative flex flex-col rounded-2xl overflow-hidden w-full"
         style={{ maxWidth: s.w, minHeight: fitContent ? 'auto' : s.h, maxHeight: '92dvh', background: '#0c1422', border: '1px solid #1e2b40', boxShadow: '0 40px 100px rgba(0,0,0,0.9)' }}
       >
-        <div className="flex items-center px-5 py-4 flex-shrink-0" style={{ borderBottom: '1px solid #1a2535' }}>
+        <div className="flex items-center px-7 py-4 flex-shrink-0" style={{ borderBottom: '1px solid #1a2535' }}>
           <div className="flex-1" />
           <span className="text-base uppercase tracking-[0.22em] font-bold" style={{ color: '#c9a84c' }}>{title}</span>
           <div className="flex-1 flex justify-end">
@@ -90,7 +90,7 @@ function Modal({ title, onClose, children, size = 'md', fitContent = false }) {
 }
 
 // ── Text input ────────────────────────────────────────────────────────────────
-function TextInput({ placeholder, value, onChange, onKeyDown, type = 'text', autoFocus = false, mono = false }) {
+function TextInput({ placeholder, value, onChange, onKeyDown, type = 'text', autoFocus = false, mono = false, disabled = false }) {
   const [focused, setFocused] = useState(false)
   return (
     <input
@@ -100,6 +100,7 @@ function TextInput({ placeholder, value, onChange, onKeyDown, type = 'text', aut
       autoFocus={autoFocus}
       onChange={onChange}
       onKeyDown={onKeyDown}
+      disabled={disabled}
       onFocus={() => setFocused(true)}
       onBlur={() => setFocused(false)}
       className={`w-full px-5 rounded-xl text-lg focus:outline-none transition-all duration-150 ${mono ? 'font-mono tracking-widest uppercase' : ''}`}
@@ -108,8 +109,9 @@ function TextInput({ placeholder, value, onChange, onKeyDown, type = 'text', aut
         background: '#070e1a',
         border: `1px solid ${focused ? '#c9a84c' : '#1e2b40'}`,
         caretColor: '#c9a84c',
-        color: '#e8d5a3',
+        color: disabled ? '#364060' : '#e8d5a3',
         boxShadow: focused ? '0 0 0 3px rgba(201,168,76,0.1)' : 'none',
+        cursor: disabled ? 'default' : undefined,
       }}
     />
   )
@@ -143,11 +145,26 @@ function RoomRow({ room, onJoin, onSpectate }) {
         ))}
         <span className="text-[11px] ml-1" style={{ color: '#4a5570' }}>{room.playerCount}/4</span>
       </div>
-      <div className="flex-1 flex items-center gap-2">
+      <div className="flex-1 flex items-center gap-1.5 flex-wrap">
         <span className="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full" style={{
           background: isPlaying ? 'rgba(201,168,76,0.12)' : 'rgba(59,130,246,0.1)',
           color: isPlaying ? '#c9a84c' : '#6b8fc9',
         }}>{isPlaying ? t('status_playing') : t('status_waiting')}</span>
+        {room.gameMode === '9' && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(120,80,200,0.15)', color: '#a070e0' }}>
+            {t('mode_only9')}
+          </span>
+        )}
+        {room.isRanked && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full font-bold tracking-wide" style={{ background: 'rgba(201,168,76,0.15)', color: '#c9a84c' }}>
+            {t('ranked_badge')}
+          </span>
+        )}
+        {room.playInPairs && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(60,180,120,0.15)', color: '#50c090' }}>
+            2×2
+          </span>
+        )}
         {room.hasPassword && <span style={{ color: '#4a5570', fontSize: 12 }}>🔒</span>}
         {room.spectatorCount > 0 && <span className="text-[10px]" style={{ color: '#4a5570' }}>👁 {room.spectatorCount}</span>}
       </div>
@@ -193,10 +210,10 @@ const BTN_STYLES = {
 }
 
 const LIGHT_BTN_STYLES = {
-  gold:  { bg: 'linear-gradient(135deg, #c9a84c 0%, #e2c96a 100%)', color: '#07090e', border: 'none',                  shadow: '0 6px 32px rgba(201,168,76,0.4)'  },
-  blue:  { bg: '#dce8f8',                                             color: '#1a4a8a', border: '1px solid #a8c8e8',   shadow: '0 6px 24px rgba(168,200,232,0.4)' },
-  slate: { bg: '#e4e0d4',                                             color: '#4a4030', border: '1px solid #c4bca8',   shadow: '0 6px 24px rgba(196,188,168,0.4)' },
-  dim:   { bg: '#e0dcd0',                                             color: '#6a6050', border: '1px solid #c0b8a0',   shadow: '0 6px 24px rgba(192,184,160,0.4)' },
+  gold:  { bg: 'linear-gradient(135deg, #c9a84c 0%, #e2c96a 100%)', color: '#07090e', border: 'none',                     shadow: '0 5px 28px rgba(180,140,40,0.45)'   },
+  blue:  { bg: '#cde0f4',                                             color: '#123a7a', border: '1.5px solid #7aaccf',     shadow: '0 4px 18px rgba(100,160,210,0.35)' },
+  slate: { bg: '#d8d2be',                                             color: '#302810', border: '1.5px solid #9c9070',     shadow: '0 4px 18px rgba(140,128,96,0.35)'  },
+  dim:   { bg: '#cfc9b4',                                             color: '#483e28', border: '1.5px solid #908468',     shadow: '0 4px 18px rgba(128,116,88,0.35)'  },
 }
 
 function LobbyBtn({ children, onClick, color = 'slate', badge = null, theme = 'dark', fluid = false }) {
@@ -217,8 +234,8 @@ function LobbyBtn({ children, onClick, color = 'slate', badge = null, theme = 'd
         className="font-bold tracking-wider rounded-full normal-case"
         style={{
           fontSize: 10, padding: '2px 10px',
-          background: badge ? 'rgba(201,168,76,0.18)' : 'transparent',
-          color: badge ? '#c9a84c' : 'transparent',
+          background: badge ? (theme === 'light' ? 'rgba(255,255,255,0.80)' : 'rgba(201,168,76,0.18)') : 'transparent',
+          color: badge ? (theme === 'light' ? '#0a0806' : '#c9a84c') : 'transparent',
           visibility: badge ? 'visible' : 'hidden',
         }}
       >
@@ -229,10 +246,32 @@ function LobbyBtn({ children, onClick, color = 'slate', badge = null, theme = 'd
 }
 
 // ── Create-panel primitives ───────────────────────────────────────────────────
-function SettingRow({ label, children, sub = false }) {
+function InfoTip({ text }) {
+  const [open, setOpen] = useState(false)
   return (
-    <div className="flex items-center justify-between" style={{ minHeight: 48, padding: sub ? '6px 0' : '8px 0', borderBottom: '1px solid rgba(30,43,64,0.6)' }}>
-      <span style={{ fontSize: sub ? 12 : 13, fontWeight: 600, color: sub ? '#6a7a9a' : '#8090aa' }}>{label}</span>
+    <span style={{ position: 'relative', display: 'inline-flex', alignItems: 'center', flexShrink: 0 }}>
+      <button
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
+        onClick={() => setOpen(o => !o)}
+        style={{ width: 16, height: 16, borderRadius: '50%', background: 'rgba(80,110,160,0.18)', border: '1px solid #2a3a54', color: '#5a7aaa', fontSize: 9, fontWeight: 900, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1, padding: 0, marginLeft: 5 }}
+      >i</button>
+      {open && (
+        <div style={{ position: 'absolute', left: 0, bottom: 'calc(100% + 8px)', background: '#0c1828', border: '1px solid #2a3a54', borderRadius: '0.625rem', padding: '9px 12px', fontSize: 11, color: '#8a9ab8', width: 240, zIndex: 200, lineHeight: 1.5, boxShadow: '0 8px 24px rgba(0,0,0,0.7)', pointerEvents: 'none' }}>
+          {text}
+          <div style={{ position: 'absolute', left: 8, bottom: -5, width: 8, height: 8, background: '#0c1828', border: '1px solid #2a3a54', borderTop: 'none', borderLeft: 'none', rotate: '45deg' }} />
+        </div>
+      )}
+    </span>
+  )
+}
+
+function SettingRow({ label, children, sub = false, tip = null }) {
+  return (
+    <div className="flex items-center justify-between" style={{ minHeight: sub ? 40 : 52, padding: sub ? '6px 4px' : '10px 4px', borderBottom: '1px solid rgba(30,43,64,0.6)' }}>
+      <span style={{ fontSize: sub ? 12 : 13, fontWeight: 600, color: sub ? '#6a7a9a' : '#8090aa', display: 'flex', alignItems: 'center' }}>
+        {label}{tip && <InfoTip text={tip} />}
+      </span>
       {children}
     </div>
   )
@@ -343,12 +382,13 @@ function LobbyChatPanel({ socket, messages, open, setOpen }) {
 }
 
 // ── Main Lobby ────────────────────────────────────────────────────────────────
-export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuickStartWithBots, inviteRoomCode = null, onOpenCabinet = null, socket = null, lobbyMessages = [], lobbyChatOpen = false, setLobbyChatOpen = null }) {
+export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuickStartWithBots, inviteRoomCode = null, onOpenCabinet = null, onlineMap = {}, socket = null, lobbyMessages = [], lobbyChatOpen = false, setLobbyChatOpen = null, theme: themeProp = null }) {
   const t = useT()
   const { lang } = useLang()
-  const { user, setUser, logout, API_URL } = useAuth()
+  const { user, setUser, updateUser, logout, API_URL } = useAuth()
   const { fourColor, toggleFourColor, deckTheme, setDeckThemeId, tableThemeId, setTableThemeId, cardStyle, setCardStyle } = usePrefs()
-  const [theme, setTheme] = useTheme()
+  const [themeHook] = useTheme()
+  const theme = themeProp ?? themeHook
 
   // ── modal state ──
   const [modal, setModal] = useState(() => inviteRoomCode ? 'play' : null)
@@ -376,8 +416,50 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
   const [lbPeriod,    setLbPeriod]    = useState('all')  // 'day'|'week'|'month'|'all'
 
   // ── profile tab state ──
-  const [profileTab, setProfileTab] = useState('stats')  // 'stats'|'history'|'account'
+  const [profileTab, setProfileTab] = useState('me')  // 'me'|'history'|'friends'
   const [gameHistory, setGameHistory] = useState(null)
+
+  // ── account tab state ──
+  const [acctEditing, setAcctEditing] = useState(null)  // null | 'username' | 'email' | 'password'
+  const [acctVal,     setAcctVal]     = useState('')
+  const [acctVal2,    setAcctVal2]    = useState('')  // confirm password
+  const [acctMsg,     setAcctMsg]     = useState(null)
+  const [acctBusy,    setAcctBusy]    = useState(false)
+
+  const startEdit = (field) => { setAcctEditing(field); setAcctVal(''); setAcctVal2(''); setAcctMsg(null) }
+  const cancelEdit = () => { setAcctEditing(null); setAcctVal(''); setAcctVal2(''); setAcctMsg(null) }
+
+  const saveAcct = async (field) => {
+    const body = {}
+    if (field === 'username') {
+      if (!acctVal.trim()) { setAcctMsg({ ok: false, text: 'Username required' }); return }
+      body.username = acctVal.trim()
+    } else if (field === 'email') {
+      if (!acctVal.trim()) { setAcctMsg({ ok: false, text: 'Email required' }); return }
+      body.email = acctVal.trim()
+    } else if (field === 'password') {
+      if (!acctVal.trim() || acctVal.length < 4) { setAcctMsg({ ok: false, text: 'Min 4 characters' }); return }
+      if (acctVal !== acctVal2) { setAcctMsg({ ok: false, text: 'Passwords do not match' }); return }
+      body.newPassword = acctVal
+    }
+    setAcctBusy(true); setAcctMsg(null)
+    try {
+      const token = localStorage.getItem('joker_token')
+      const res   = await fetch(`${API_URL}/api/profile`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(body),
+      })
+      const data = await res.json()
+      if (!res.ok) { setAcctMsg({ ok: false, text: data.error ?? 'Error' }); return }
+      updateUser(data.token)
+      cancelEdit()
+    } catch {
+      setAcctMsg({ ok: false, text: 'Network error' })
+    } finally {
+      setAcctBusy(false)
+    }
+  }
 
   // ── collection tab state ──
   const [collectionTab, setCollectionTab] = useState('table')
@@ -433,7 +515,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
 
   // ── reset profile tab when modal opens ──
   useEffect(() => {
-    if (modal === 'profile') { setProfileTab('stats'); setGameHistory(null) }
+    if (modal === 'profile') { setProfileTab('me'); setGameHistory(null); cancelEdit() }
   }, [modal])
 
   // ── fetch user stats when profile opens ──
@@ -555,24 +637,31 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
   return (
     <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
       style={{ background: 'var(--lobby-gradient)' }}>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <style>{`
+        @keyframes spin{to{transform:rotate(360deg)}}
+        @keyframes sf1{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+        @keyframes sf2{0%,100%{transform:translateY(-12px)}50%{transform:translateY(12px)}}
+        @keyframes sf3{0%,100%{transform:translateY(10px)}50%{transform:translateY(-16px)}}
+        @keyframes sf4{0%,100%{transform:translateY(-8px)}50%{transform:translateY(16px)}}
+      `}</style>
 
       {/* Corner suit watermarks */}
       {[
-        { s: '♠', top: 28,    left: 36,    color: '#c9a84c' },
-        { s: '♥', top: 28,    right: 36,   color: '#b83030' },
-        { s: '♦', bottom: 28, right: 36,   color: '#b83030' },
-        { s: '♣', bottom: 28, left: 36,    color: '#c9a84c' },
-      ].map(({ s, color, ...pos }, i) => (
+        { s: '♠', top: 28,    left: 36,    dc: '#c9a84c', lc: '#5a4010', an: 'sf1', dur: 18 },
+        { s: '♥', top: 28,    right: 36,   dc: '#b83030', lc: '#7a1818', an: 'sf2', dur: 15 },
+        { s: '♦', bottom: 28, right: 36,   dc: '#b83030', lc: '#7a1818', an: 'sf3', dur: 20 },
+        { s: '♣', bottom: 28, left: 36,    dc: '#c9a84c', lc: '#5a4010', an: 'sf4', dur: 16 },
+      ].map(({ s, dc, lc, an, dur, ...pos }, i) => (
         <span key={i} className="absolute select-none pointer-events-none"
-          style={{ color, opacity: theme === 'light' ? 0.14 : 0.09, fontSize: 100, lineHeight: 1, ...pos }}>{s}</span>
+          style={{ color: theme === 'light' ? lc : dc, opacity: theme === 'light' ? 0.30 : 0.13, fontSize: 100, lineHeight: 1, animation: `${an} ${dur}s ease-in-out infinite`, ...pos }}>{s}</span>
       ))}
       {/* Scattered mid suits */}
       {['♠','♥','♦','♣','♥','♠','♦'].map((s, i) => (
         <span key={`m${i}`} className="absolute select-none pointer-events-none" style={{
           left: `${[8,84,4,92,50,24,68][i]}%`, top: `${[38,30,68,58,82,52,18][i]}%`,
-          fontSize: [32,28,40,24,36,22,30][i], opacity: theme === 'light' ? 0.07 : 0.03,
-          color: [0,3,5].includes(i) ? '#c9a84c' : '#b83030',
+          fontSize: [32,28,40,24,36,22,30][i], opacity: theme === 'light' ? 0.18 : 0.05,
+          color: [0,3,5].includes(i) ? (theme === 'light' ? '#5a4010' : '#c9a84c') : (theme === 'light' ? '#7a1818' : '#b83030'),
+          animation: `sf${(i % 4) + 1} ${[22,19,25,17,21,24,18][i]}s ease-in-out infinite ${[0,3,6,2,5,1,4][i]}s`,
         }}>{s}</span>
       ))}
 
@@ -602,174 +691,198 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
           <LobbyBtn color="gold"  theme={theme} fluid onClick={() => openModal('play')}>{t('nav_play')}</LobbyBtn>
           <LobbyBtn color="blue"  theme={theme} fluid onClick={() => openModal('collection')}>{t('nav_collection')}</LobbyBtn>
           <LobbyBtn color="blue"  theme={theme} fluid onClick={() => openModal('leaderboard')}>{t('nav_leaderboard')}</LobbyBtn>
-          <LobbyBtn color="slate" theme={theme} fluid badge={user?.username ?? t('guest_badge')} onClick={() => openModal('profile')}>{t('nav_profile')}</LobbyBtn>
+          <LobbyBtn color="slate" theme={theme} fluid badge={user?.username ?? t('guest_badge')} onClick={() => openModal('profile')}>
+            {user
+              ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(201,168,76,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>{PRESET_AVATARS[user.avatarId] ?? '🃏'}</span>
+                  {t('nav_profile')}
+                </span>
+              : t('nav_profile')
+            }
+          </LobbyBtn>
         </div>
       ) : (
         <div className="flex items-center flex-wrap justify-center px-6" style={{ gap: 48 }}>
           <LobbyBtn color="gold"  theme={theme} onClick={() => openModal('play')}>{t('nav_play')}</LobbyBtn>
           <LobbyBtn color="blue"  theme={theme} onClick={() => openModal('collection')}>{t('nav_collection')}</LobbyBtn>
           <LobbyBtn color="blue"  theme={theme} onClick={() => openModal('leaderboard')}>{t('nav_leaderboard')}</LobbyBtn>
-          <LobbyBtn color="slate" theme={theme} badge={user?.username ?? t('guest_badge')} onClick={() => openModal('profile')}>{t('nav_profile')}</LobbyBtn>
+          <LobbyBtn color="slate" theme={theme} badge={user?.username ?? t('guest_badge')} onClick={() => openModal('profile')}>
+            {user
+              ? <span style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
+                  <span style={{ width: 28, height: 28, borderRadius: '50%', background: 'rgba(201,168,76,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 17, flexShrink: 0 }}>{PRESET_AVATARS[user.avatarId] ?? '🃏'}</span>
+                  {t('nav_profile')}
+                </span>
+              : t('nav_profile')
+            }
+          </LobbyBtn>
         </div>
       )}
 
       {/* ── How to Play link ── */}
       <button onClick={() => setShowTutorial(true)}
-        className="text-xs uppercase tracking-widest font-semibold transition-all hover:opacity-80"
-        style={{ color: 'rgba(201,168,76,0.4)', background: 'none', border: 'none', cursor: 'pointer', marginTop: isSmall ? 6 : 8 }}>
-        ? {t('nav_how_to_play')}
+        className="text-xs uppercase tracking-widest font-bold transition-all hover:opacity-90 active:scale-[0.97]"
+        style={{
+          color:        theme === 'light' ? '#0a0806' : 'rgba(201,168,76,0.65)',
+          background:   theme === 'light' ? 'rgba(255,255,255,0.82)' : 'none',
+          border:       `1px solid ${theme === 'light' ? 'rgba(10,8,6,0.45)' : 'rgba(201,168,76,0.18)'}`,
+          borderRadius: '0.75rem',
+          cursor:       'pointer',
+          marginTop:    isSmall ? 8 : 14,
+          padding:      '8px 22px',
+          letterSpacing: '0.14em',
+        }}>
+        ❓ {t('nav_how_to_play')}
       </button>
 
       {/* ════════════════ PLAY MODAL ════════════════ */}
       {modal === 'play' && (
-        <Modal title={t('modal_find_game')} onClose={closeModal} size="md" fitContent>
-          <div className="p-8 flex flex-col gap-5">
-            {/* Name */}
+        <Modal
+          title={playPanel === 'create' ? t('create_room') : playPanel === 'join' ? t('modal_join_code') : t('nav_play')}
+          onClose={closeModal} size="md" fitContent
+        >
+          <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+            {/* ── Player chip ── */}
             {user ? (
-              <div className="flex items-center gap-3 px-5 py-8 rounded-xl" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
-                <span className="text-lg font-bold flex-1" style={{ color: '#e8d5a3' }}>{user.username}</span>
+              <div className="flex items-center gap-3" style={{ padding: '12px 16px', background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12 }}>
+                <span style={{ width: 32, height: 32, borderRadius: '50%', background: 'rgba(201,168,76,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>
+                  {PRESET_AVATARS[user.avatarId] ?? '🃏'}
+                </span>
+                <span className="text-sm font-bold flex-1" style={{ color: '#e8d5a3' }}>{user.username}</span>
+                <span className="text-[10px] uppercase tracking-wider px-2 py-1 rounded-full" style={{ background: 'rgba(201,168,76,0.1)', color: '#8a9060' }}>{t('registered')}</span>
               </div>
             ) : (
-              <div className="flex items-center gap-3 px-5 py-8 rounded-xl" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
+              <div className="flex items-center gap-3" style={{ padding: '12px 16px', background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12 }}>
                 <div className="flex-1 min-w-0">
-                  <div className="text-xs uppercase tracking-wider mb-1" style={{ color: '#4a5570' }}>{t('playing_as')}</div>
-                  <div className="text-lg font-bold truncate" style={{ color: '#e8d5a3' }}>{name}</div>
+                  <div className="text-[10px] uppercase tracking-wider mb-0.5" style={{ color: '#4a5570' }}>{t('playing_as')}</div>
+                  <div className="text-sm font-bold truncate" style={{ color: '#e8d5a3' }}>{name}</div>
                 </div>
-                <button
-                  onClick={() => setName(pickGuestName(lang))}
-                  title={t('reroll_name')}
-                  className="text-2xl hover:scale-125 transition-transform flex-shrink-0"
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}
-                >🎲</button>
+                <button onClick={() => setName(pickGuestName(lang))} title={t('reroll_name')}
+                  className="text-xl hover:scale-125 transition-transform flex-shrink-0"
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', lineHeight: 1 }}>🎲</button>
                 <button onClick={() => openModal('profile')}
-                  className="text-sm font-bold px-4 py-3 rounded-lg transition-all hover:brightness-110 flex-shrink-0"
+                  className="text-xs font-bold px-3 py-2 rounded-lg transition-all hover:brightness-110 flex-shrink-0"
                   style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', color: '#c9a84c' }}>
                   {t('login')}
                 </button>
               </div>
             )}
 
-            {/* Primary actions */}
-            <button onClick={handleQuickStartWithBots} disabled={joining}
-              className="w-full rounded-2xl font-bold text-xl tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ height: 96, background: 'linear-gradient(135deg, #3a7a4c 0%, #4ade80 100%)', color: '#07090e', boxShadow: '0 4px 24px rgba(74,222,128,0.25)' }}>
-              🤖 {joining ? '…' : t('quick_match_bots')}
-            </button>
-
-            <button onClick={handleQuickMatch} disabled={joining}
-              className="w-full rounded-2xl font-bold text-xl tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ height: 96, background: 'linear-gradient(135deg, #c9a84c 0%, #e2c96a 100%)', color: '#07090e', boxShadow: '0 4px 24px rgba(201,168,76,0.35)' }}>
-              ⚡ {t('quick_match')}
-            </button>
-
-            <div className="flex gap-2">
-              <button onClick={() => setPlayPanel(p => p === 'create' ? null : 'create')}
-                className="flex-1 rounded-xl font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center"
-                style={{ height: 96, background: playPanel === 'create' ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.04)', border: `1.5px solid ${playPanel === 'create' ? '#c9a84c' : '#1e2b40'}`, color: playPanel === 'create' ? '#c9a84c' : '#6a7a9a' }}>
-                + {t('create_room')}
-              </button>
-              <button onClick={() => setPlayPanel(p => p === 'join' ? null : 'join')}
-                className="flex-1 rounded-xl text-base font-semibold transition-all active:scale-[0.98] flex items-center justify-center"
-                style={{ height: 96, background: playPanel === 'join' ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.04)', border: `1.5px solid ${playPanel === 'join' ? '#c9a84c' : '#1e2b40'}`, color: playPanel === 'join' ? '#c9a84c' : '#6a7a9a' }}>
-                {t('code_btn')}
-              </button>
+            {/* ── Instant Play group ── */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] uppercase tracking-widest font-bold px-1" style={{ color: '#4a5570' }}>⚡ {t('section_instant')}</span>
+              <div className="flex gap-2">
+                <button onClick={handleQuickMatch} disabled={joining}
+                  className="flex-1 rounded-2xl font-bold text-base tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ height: 72, background: 'linear-gradient(135deg, #c9a84c 0%, #e2c96a 100%)', color: '#07090e', boxShadow: '0 4px 20px rgba(201,168,76,0.3)' }}>
+                  ⚡ {joining ? '…' : t('quick_match')}
+                </button>
+                <button onClick={handleQuickStartWithBots} disabled={joining}
+                  className="flex-1 rounded-2xl font-bold text-base tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ height: 72, background: 'linear-gradient(135deg, #2a6a3c 0%, #3abe6e 100%)', color: '#e8f5ec', boxShadow: '0 4px 20px rgba(58,190,110,0.2)' }}>
+                  🤖 {t('quick_match_bots')}
+                </button>
+              </div>
             </div>
 
-            {/* Create panel */}
-            {playPanel === 'create' && (
-              <div className="rounded-2xl p-5 flex flex-col gap-1" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
-                <span className="text-[10px] uppercase tracking-widest font-bold mb-2" style={{ color: '#c9a84c' }}>{t('new_room')}</span>
+            {/* ── divider ── */}
+            <div className="flex items-center gap-3">
+              <div className="flex-1" style={{ height: 1, background: '#1a2535' }} />
+              <span className="text-[10px] uppercase tracking-widest" style={{ color: '#2a3550' }}>{t('or_divider')}</span>
+              <div className="flex-1" style={{ height: 1, background: '#1a2535' }} />
+            </div>
 
-                {/* Password */}
+            {/* ── Private Game group ── */}
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] uppercase tracking-widest font-bold px-1" style={{ color: '#4a5570' }}>🔒 {t('section_private')}</span>
+              <div className="flex gap-2">
+                <button onClick={() => setPlayPanel(p => p === 'create' ? null : 'create')}
+                  className="flex-1 rounded-xl font-bold text-sm transition-all active:scale-[0.98] flex items-center justify-center"
+                  style={{ height: 56, background: playPanel === 'create' ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.04)', border: `1.5px solid ${playPanel === 'create' ? '#c9a84c' : '#1e2b40'}`, color: playPanel === 'create' ? '#c9a84c' : '#6a7a9a' }}>
+                  + {t('create_room')}
+                </button>
+                <button onClick={() => setPlayPanel(p => p === 'join' ? null : 'join')}
+                  className="flex-1 rounded-xl text-sm font-semibold transition-all active:scale-[0.98] flex items-center justify-center"
+                  style={{ height: 56, background: playPanel === 'join' ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.04)', border: `1.5px solid ${playPanel === 'join' ? '#c9a84c' : '#1e2b40'}`, color: playPanel === 'join' ? '#c9a84c' : '#6a7a9a' }}>
+                  🔑 {t('code_btn')}
+                </button>
+              </div>
+            </div>
+
+            {/* ── Create panel ── */}
+            {playPanel === 'create' && (
+              <div className="rounded-2xl flex flex-col gap-1" style={{ background: '#0a1422', border: '1px solid #1a2840', padding: '20px 28px' }}>
+
+                {/* Room Access */}
+                <div className="text-[10px] uppercase tracking-widest font-bold mb-1 mt-1" style={{ color: '#c9a84c' }}>{t('section_access')}</div>
+                <SettingRow label={t('ranked_mode')}>
+                  <Toggle value={isRanked} onChange={() => setIsRanked(p => !p)} />
+                </SettingRow>
+                {isRanked && <p className="text-[10px] text-right" style={{ color: '#6a7a9a', marginTop: -4 }}>{t('ranked_no_bots')}</p>}
                 <SettingRow label={t('pw_protect')}>
                   <Toggle value={hasPassword} onChange={() => setHasPassword(p => !p)} />
                 </SettingRow>
-                {hasPassword && (
-                  <div className="pb-1">
-                    <TextInput placeholder={t('room_pw_ph')} type="password" value={password} onChange={e => setPassword(e.target.value)} />
-                  </div>
-                )}
+                {hasPassword && <div className="pb-1"><TextInput placeholder={t('room_pw_ph')} type="password" value={password} onChange={e => setPassword(e.target.value)} /></div>}
 
-                {/* Game mode */}
-                <SettingRow label={t('game_mode')}>
+                {/* Rules */}
+                <div className="text-[10px] uppercase tracking-widest font-bold mb-1 mt-3" style={{ color: '#c9a84c' }}>{t('section_rules')}</div>
+                <SettingRow label={t('game_mode')} tip={t('tip_game_mode')}>
                   <div className="flex gap-2">
                     {[{ id: 'normal', label: t('mode_classic') }, { id: 'only9', label: t('mode_only9') }].map(m => (
-                      <OptionBtn key={m.id} active={gameMode === m.id}
-                        onClick={() => { setGameMode(m.id); setHishtPenalty('200') }}>
-                        {m.label}
-                      </OptionBtn>
+                      <OptionBtn key={m.id} active={gameMode === m.id} onClick={() => { setGameMode(m.id); setHishtPenalty('200') }}>{m.label}</OptionBtn>
                     ))}
                   </div>
                 </SettingRow>
-
-                {/* Play in Pairs */}
-                <SettingRow label={t('play_in_pairs')}>
+                <SettingRow label={t('play_in_pairs')} tip={t('tip_pairs')}>
                   <Toggle value={playInPairs} onChange={() => setPlayInPairs(p => !p)} />
                 </SettingRow>
-
-                {/* Hisht penalty — options depend on game mode */}
-                <SettingRow label={t('hisht_penalty')}>
+                <SettingRow label={t('hisht_penalty')} tip={t('tip_hisht')}>
                   <div className="flex gap-2 flex-wrap justify-end">
-                    {(gameMode === 'only9'
-                      ? ['200', '300', '500', '900']
-                      : ['200', '500', '200/500', '×100']
-                    ).map(v => (
-                      <OptionBtn key={v} active={hishtPenalty === v} onClick={() => setHishtPenalty(v)}>
-                        {v}
-                      </OptionBtn>
+                    {(gameMode === 'only9' ? ['200','300','500','900'] : ['200','500','200/500','×100']).map(v => (
+                      <OptionBtn key={v} active={hishtPenalty === v} onClick={() => setHishtPenalty(v)}>{v}</OptionBtn>
                     ))}
                   </div>
                 </SettingRow>
 
-                {/* Deductions */}
-                <SettingRow label={t('deductions')}>
+                {/* Advanced */}
+                <div className="text-[10px] uppercase tracking-widest font-bold mb-1 mt-3" style={{ color: '#c9a84c' }}>{t('section_advanced')}</div>
+                <SettingRow label={t('deductions')} tip={t('tip_deductions')}>
                   <Toggle value={deductions} onChange={() => setDeductions(p => !p)} />
                 </SettingRow>
                 {deductions && (
                   <div className="ml-4 pl-4 flex flex-col gap-1 mb-1" style={{ borderLeft: '2px solid #1e2b40' }}>
-                    <SettingRow label={t('multi_premia_deduct')} sub>
+                    <SettingRow label={t('multi_premia_deduct')} sub tip={t('tip_multi_premia')}>
                       <Toggle value={multiPremiaDeduction} onChange={() => setMultiPremiaDeduction(p => !p)} />
                     </SettingRow>
-                    <SettingRow label={t('last_bid_untouchable')} sub>
+                    <SettingRow label={t('last_bid_untouchable')} sub tip={t('tip_last_bid')}>
                       <Toggle value={lastBidUntouchable} onChange={() => setLastBidUntouchable(p => !p)} />
                     </SettingRow>
                   </div>
                 )}
 
-                {/* Ranked */}
-                <SettingRow label={t('ranked_mode')}>
-                  <Toggle value={isRanked} onChange={() => setIsRanked(p => !p)} />
-                </SettingRow>
-                {isRanked && (
-                  <p className="text-[10px] text-right" style={{ color: '#6a7a9a', marginTop: -4 }}>
-                    {t('ranked_no_bots')}
-                  </p>
-                )}
-
                 <button onClick={handleCreate}
-                  className="w-full rounded-xl font-bold text-base tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center mt-2"
-                  style={{ height: 72, background: '#c9a84c', color: '#07090e' }}>
+                  className="w-full rounded-xl font-bold text-base tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center mt-3"
+                  style={{ height: 64, background: '#c9a84c', color: '#07090e' }}>
                   {t('create_game_btn')}
                 </button>
               </div>
             )}
 
-            {/* Join by code panel */}
+            {/* ── Join by code panel ── */}
             {playPanel === 'join' && (
-              <div className="rounded-2xl p-4 flex flex-col gap-3" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
-                <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#c9a84c' }}>{t('join_watch_title')}</span>
+              <div style={{ padding: '20px', background: '#0a1422', border: '1px solid #1a2840', borderRadius: 16, display: 'flex', flexDirection: 'column', gap: 12 }}>
                 <TextInput placeholder={t('room_code_ph')} value={roomCode}
                   onChange={e => setRoomCode(e.target.value.toUpperCase())}
                   onKeyDown={e => e.key === 'Enter' && handleJoinByCode()} mono autoFocus />
                 <div className="flex gap-2">
                   <button onClick={handleJoinByCode}
                     className="flex-1 rounded-xl font-bold text-base transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center"
-                    style={{ height: 72, background: '#c9a84c', color: '#07090e' }}>
+                    style={{ height: 64, background: '#c9a84c', color: '#07090e' }}>
                     {t('join_btn')}
                   </button>
                   <button onClick={() => { if (!roomCode.trim()) { setError(t('enter_code')); return } handleSpectateRoom(roomCode.trim().toUpperCase()) }}
                     className="flex-1 rounded-xl font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center"
-                    style={{ height: 72, background: 'rgba(255,255,255,0.04)', border: '1px solid #1e2b40', color: '#6a7a9a' }}>
+                    style={{ height: 64, background: 'rgba(255,255,255,0.04)', border: '1px solid #1e2b40', color: '#6a7a9a' }}>
                     {t('watch_btn')}
                   </button>
                 </div>
@@ -778,24 +891,27 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
 
             {error && <p className="text-xs text-center" style={{ color: '#e05252' }}>{error}</p>}
 
-            {/* Live rooms divider + list (hidden when create panel is open) */}
+            {/* ── Live rooms (hidden when create panel open) ── */}
             {playPanel !== 'create' && <>
-              <div className="flex items-center gap-3 mt-1">
+              <div className="flex items-center gap-3">
                 <div className="flex-1" style={{ height: 1, background: '#1a2535' }} />
                 <span className="text-[10px] uppercase tracking-widest" style={{ color: '#364060' }}>{t('live_rooms')}</span>
                 <button onClick={fetchRooms} className="text-[10px] transition-colors hover:text-amber-400" style={{ color: '#364060' }}>↻</button>
                 <div className="flex-1" style={{ height: 1, background: '#1a2535' }} />
               </div>
-
               {loading ? (
                 <div className="flex justify-center py-6">
                   <div className="w-5 h-5 rounded-full border-2 border-transparent" style={{ borderTopColor: '#c9a84c', animation: 'spin 0.8s linear infinite' }} />
                 </div>
               ) : rooms.length === 0 ? (
-                <div className="text-center py-8 flex flex-col items-center gap-2" style={{ color: '#4a5570' }}>
-                  <span style={{ fontSize: 36 }}>🃏</span>
+                <div className="text-center py-6 flex flex-col items-center gap-3" style={{ color: '#4a5570' }}>
+                  <span style={{ fontSize: 32 }}>🃏</span>
                   <span className="text-xs uppercase tracking-widest font-semibold">{t('no_rooms')}</span>
-                  <span className="text-[10px]" style={{ color: '#2e4060' }}>{t('no_rooms_hint')}</span>
+                  <button onClick={() => setPlayPanel('create')}
+                    className="text-xs font-bold px-4 py-2 rounded-lg transition-all hover:brightness-110"
+                    style={{ background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.3)', color: '#c9a84c' }}>
+                    + {t('create_room')}
+                  </button>
                 </div>
               ) : (
                 <div className="flex flex-col gap-2">
@@ -819,13 +935,14 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
         })
         // Reusable thumbnail wrapper — handles border/glow/label overlay
         const Thumb = ({ active, onClick, children, label }) => (
-          <button onClick={onClick} className="relative overflow-hidden transition-all"
-            style={{ aspectRatio: '3/4', borderRadius: 16, border: `2px solid ${active ? '#c9a84c' : 'rgba(255,255,255,0.06)'}`, boxShadow: active ? '0 0 18px rgba(201,168,76,0.45)' : 'none', background: '#0a1422' }}>
-            {children}
+          <button onClick={onClick}
+            style={{ position: 'relative', display: 'block', width: '100%', paddingBottom: '133.33%', borderRadius: 16, border: `2px solid ${active ? '#c9a84c' : 'rgba(255,255,255,0.06)'}`, boxShadow: active ? '0 0 18px rgba(201,168,76,0.45)' : 'none', background: '#0a1422', overflow: 'hidden', transition: 'all 0.2s', cursor: 'pointer' }}>
+            <div style={{ position: 'absolute', inset: 0 }}>
+              {children}
+            </div>
             {/* label bar */}
-            <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-2 py-1.5"
-              style={{ background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)' }}>
-              <span className="text-[11px] font-bold truncate" style={{ color: active ? '#c9a84c' : 'rgba(255,255,255,0.5)' }}>{label}</span>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(0,0,0,0.65)', backdropFilter: 'blur(4px)', padding: '6px 8px' }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: active ? '#c9a84c' : 'rgba(255,255,255,0.5)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
               {active && <span style={{ color: '#c9a84c', fontSize: 11, flexShrink: 0 }}>✓</span>}
             </div>
           </button>
@@ -851,7 +968,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
 
               {/* ── Table colours ── */}
               {collectionTab === 'table' && (
-                <div className="p-5">
+                <div style={{ padding: '20px 28px' }}>
                   <div className="grid grid-cols-5 gap-3">
                     {TABLE_THEMES.map(tt => (
                       <Thumb key={tt.id} active={tableThemeId === tt.id} onClick={() => setTableThemeId(tt.id)} label={t('table_' + tt.id)}>
@@ -865,7 +982,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
 
               {/* ── Deck designs ── */}
               {collectionTab === 'deck' && (
-                <div className="p-5">
+                <div style={{ padding: '20px 28px' }}>
                   <div className="grid grid-cols-4 gap-3">
                     {DECK_THEMES.map(dt => (
                       <Thumb key={dt.id} active={deckTheme.id === dt.id} onClick={() => setDeckThemeId(dt.id)} label={dt.label}>
@@ -881,7 +998,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
 
               {/* ── Card face designs ── */}
               {collectionTab === 'cards' && (
-                <div className="p-5">
+                <div style={{ padding: '20px 28px' }}>
                   <div className="grid grid-cols-3 gap-3">
                     {/* Classic — text pip card (K♥), left-aligned corners */}
                     <Thumb active={cardStyle === 'classic'} onClick={() => setCardStyle('classic')} label={t('card_classic')}>
@@ -971,7 +1088,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
               </div>
             ) : (
               <>
-                <div className="flex items-center gap-2 px-5 py-2" style={{ borderBottom: '1px solid #1a2535' }}>
+                <div className="flex items-center gap-2" style={{ padding: '8px 28px', borderBottom: '1px solid #1a2535' }}>
                   <span style={{ width: 32, flexShrink: 0 }} />
                   <span className="flex-1 text-[9px] uppercase tracking-[0.18em] font-bold" style={{ color: '#2e4060' }}>{t('col_player')}</span>
                   <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-right" style={{ color: 'rgba(201,168,76,0.5)', width: 50 }}>🪙</span>
@@ -983,8 +1100,8 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                   const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : null
                   const rankColor = i === 0 ? '#c9a84c' : i === 1 ? '#9a9aa8' : i === 2 ? '#a06840' : '#2e4060'
                   return (
-                    <div key={p.id} className="flex items-center gap-2 px-5 py-3"
-                      style={{ background: isMe ? 'rgba(201,168,76,0.07)' : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)', borderBottom: '1px solid rgba(26,37,53,0.6)', borderLeft: isMe ? '2px solid rgba(201,168,76,0.5)' : '2px solid transparent' }}>
+                    <div key={p.id} className="flex items-center gap-2"
+                      style={{ padding: '12px 28px', background: isMe ? 'rgba(201,168,76,0.07)' : i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)', borderBottom: '1px solid rgba(26,37,53,0.6)', borderLeft: isMe ? '2px solid rgba(201,168,76,0.5)' : '2px solid transparent' }}>
                       <div style={{ width: 32, flexShrink: 0, textAlign: 'center' }}>
                         {medal ? <span style={{ fontSize: 16 }}>{medal}</span>
                           : <span className="font-mono text-xs font-bold" style={{ color: rankColor }}>{i + 1}</span>}
@@ -995,7 +1112,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                         </span>
                         <span className="text-[9px] tabular-nums" style={{ color: '#2e4060' }}>{p.games_played}g · {p.games_won}W</span>
                       </div>
-                      <span className="tabular-nums text-sm font-bold text-right" style={{ color: p.rating >= 0 ? '#c9a84c' : '#ef4444', width: 50 }}>{p.rating >= 0 ? '+' : ''}{p.rating}</span>
+                      <span className="tabular-nums text-sm font-bold text-right" style={{ color: p.rating >= 0 ? '#c9a84c' : '#ef4444', width: 50 }}>{p.rating}</span>
                       <span className="tabular-nums text-xs text-right" style={{ color: '#4a5570', width: 36 }}>{p.win_rate}</span>
                       <span className="tabular-nums text-xs text-right" style={{ color: '#4a5570', width: 36 }}>{p.bid_accuracy}</span>
                     </div>
@@ -1018,11 +1135,11 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
               {/* ── Tab bar ── */}
               <div className="flex" style={{ borderBottom: '1px solid #1a2535' }}>
                 {[
-                  { id: 'stats',   label: t('tab_stats')   },
+                  { id: 'me',      label: t('tab_me')      },
                   { id: 'history', label: t('tab_history') },
-                  { id: 'account', label: t('tab_account') },
+                  { id: 'friends', label: t('friends')     },
                 ].map(({ id, label }) => (
-                  <button key={id} onClick={() => setProfileTab(id)}
+                  <button key={id} onClick={() => { setProfileTab(id); cancelEdit() }}
                     className="flex-1 text-base font-bold transition-all flex items-center justify-center"
                     style={{ height: 72, background: profileTab === id ? 'rgba(201,168,76,0.1)' : 'transparent', color: profileTab === id ? '#c9a84c' : '#364060', borderBottom: profileTab === id ? '2px solid #c9a84c' : '2px solid transparent' }}>
                     {label}
@@ -1031,39 +1148,94 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
               </div>
 
               {/* ── Stats tab ── */}
-              {profileTab === 'stats' && (
-                <div className="p-5 flex flex-col gap-3">
+              {profileTab === 'me' && (
+                <div style={{ padding: '24px 28px', display: 'flex', flexDirection: 'column', gap: 12 }}>
 
-                  {/* Profile header */}
-                  <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
-                    <div className="w-12 h-12 rounded-full flex items-center justify-center text-2xl font-black flex-shrink-0"
-                      style={{ background: 'linear-gradient(135deg,#c9a84c,#a8893d)', color: '#07090e' }}>
+                  {/* Avatar hero */}
+                  <div style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 16, padding: '14px 16px', display: 'flex', alignItems: 'center', gap: 14 }}>
+                    <div style={{ width: 60, height: 60, borderRadius: '50%', fontSize: 30, background: 'linear-gradient(135deg,#c9a84c,#a8893d)', color: '#07090e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900, flexShrink: 0 }}>
                       {PRESET_AVATARS[user.avatarId] || user.username?.[0]?.toUpperCase()}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-bold truncate" style={{ color: '#e8d5a3' }}>{user.username}</div>
-                      <div className="text-[10px] mt-0.5" style={{ color: '#4a5570' }}>{user.email ?? (user.isGuest ? t('guest_account') : t('registered'))}</div>
-                    </div>
-                    {userStats && (
-                      <div className="flex flex-col items-center flex-shrink-0 px-2">
-                        <div className="text-xl font-black tabular-nums" style={{ color: (userStats.honor_rate ?? 100) >= 80 ? '#4ade80' : (userStats.honor_rate ?? 100) >= 50 ? '#c9a84c' : '#ef4444' }}>
-                          {userStats.honor_rate ?? 100}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#e8d5a3' }}>{user.username}</div>
+                      <div style={{ fontSize: 11, marginTop: 2, color: user.email ? '#4a5570' : '#2e4060' }}>{user.email ?? t('acct_not_set')}</div>
+                      {userStats && (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>
+                          <span style={{ fontSize: 13, fontWeight: 900, color: (userStats.honor_rate ?? 100) >= 80 ? '#4ade80' : (userStats.honor_rate ?? 100) >= 50 ? '#c9a84c' : '#ef4444' }}>{userStats.honor_rate ?? 100}</span>
+                          <span style={{ fontSize: 9, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4a5570' }}>{t('stat_honor')}</span>
                         </div>
-                        <div className="text-[9px] uppercase tracking-wider" style={{ color: '#4a5570' }}>{t('stat_honor')}</div>
-                      </div>
+                      )}
+                    </div>
+                    {onOpenCabinet && (
+                      <button onClick={() => { closeModal(); onOpenCabinet() }}
+                        style={{ padding: '6px 14px', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 8, color: '#c9a84c', fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+                        {t('acct_change_avatar')}
+                      </button>
                     )}
                   </div>
 
+                  {/* Account settings rows */}
+                  {(() => {
+                    const rowStyle = { display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#0a1422', border: '1px solid #1a2840', borderRadius: '0.75rem' }
+                    const labelStyle = { fontSize: 9, fontWeight: 700, letterSpacing: '0.18em', textTransform: 'uppercase', color: '#2e4060', marginBottom: 2 }
+                    const chBtn = (onClick) => (
+                      <button onClick={onClick} style={{ padding: '5px 12px', background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', borderRadius: '0.5rem', color: '#c9a84c', fontSize: 11, fontWeight: 700, cursor: 'pointer', flexShrink: 0 }}>
+                        Change
+                      </button>
+                    )
+                    const EditInline = ({ field, type = 'text', placeholder }) => (
+                      <div style={{ background: '#0a1422', border: '1px solid rgba(201,168,76,0.3)', borderRadius: '0.75rem', padding: '12px 16px' }}>
+                        <input autoFocus type={type} value={acctVal} onChange={e => setAcctVal(e.target.value)} placeholder={placeholder}
+                          style={{ width: '100%', boxSizing: 'border-box', padding: '8px 12px', background: '#070e1a', border: '1px solid #1e2b40', borderRadius: '0.5rem', color: '#e8d5a3', fontSize: 13, outline: 'none', caretColor: '#c9a84c' }}
+                        />
+                        {field === 'password' && (
+                          <input type="password" value={acctVal2} onChange={e => setAcctVal2(e.target.value)} placeholder="Confirm password"
+                            style={{ width: '100%', boxSizing: 'border-box', marginTop: 6, padding: '8px 12px', background: '#070e1a', border: '1px solid #1e2b40', borderRadius: '0.5rem', color: '#e8d5a3', fontSize: 13, outline: 'none', caretColor: '#c9a84c' }}
+                          />
+                        )}
+                        {acctMsg && <p style={{ fontSize: 11, color: acctMsg.ok ? '#4ade80' : '#e05252', margin: '6px 0 0' }}>{acctMsg.text}</p>}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                          <button onClick={() => saveAcct(field)} disabled={acctBusy} style={{ flex: 1, padding: '7px 0', background: '#c9a84c', border: 'none', borderRadius: '0.5rem', color: '#07090e', fontWeight: 800, fontSize: 12, cursor: acctBusy ? 'default' : 'pointer', opacity: acctBusy ? 0.5 : 1 }}>
+                            {acctBusy ? '…' : 'Save'}
+                          </button>
+                          <button onClick={cancelEdit} style={{ padding: '7px 14px', background: 'transparent', border: '1px solid #1e2b40', borderRadius: '0.5rem', color: '#364060', fontSize: 12, cursor: 'pointer' }}>
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )
+                    return (
+                      <div className="flex flex-col gap-2">
+                        {acctEditing === 'username' ? <EditInline field="username" placeholder="New username" /> : (
+                          <div style={rowStyle}>
+                            <div><div style={labelStyle}>USERNAME</div><div style={{ fontSize: 14, fontWeight: 600, color: '#e8d5a3' }}>{user.username}</div></div>
+                            {chBtn(() => startEdit('username'))}
+                          </div>
+                        )}
+                        {acctEditing === 'email' ? <EditInline field="email" type="email" placeholder="your@email.com" /> : (
+                          <div style={rowStyle}>
+                            <div><div style={labelStyle}>EMAIL</div><div style={{ fontSize: 14, fontWeight: 600, color: user.email ? '#e8d5a3' : '#364060' }}>{user.email ?? 'Not set'}</div></div>
+                            {chBtn(() => startEdit('email'))}
+                          </div>
+                        )}
+                        {acctEditing === 'password' ? <EditInline field="password" type="password" placeholder="New password" /> : (
+                          <div style={rowStyle}>
+                            <div><div style={labelStyle}>PASSWORD</div><div style={{ fontSize: 14, fontWeight: 600, color: '#e8d5a3' }}>••••••••</div></div>
+                            {chBtn(() => startEdit('password'))}
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })()}
+
+                  {/* Stats */}
                   {userStats ? (<>
-                    {/* Token balance — hero */}
-                    <div className="rounded-2xl p-4 text-center" style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.04))', border: '1px solid rgba(201,168,76,0.25)' }}>
+                    <div style={{ background: 'linear-gradient(135deg, rgba(201,168,76,0.1), rgba(201,168,76,0.04))', border: '1px solid rgba(201,168,76,0.25)', borderRadius: 16, padding: '16px 20px', textAlign: 'center' }}>
                       <div className="text-[9px] uppercase tracking-[0.22em] mb-1" style={{ color: '#c9a84c' }}>{t('stat_tokens')}</div>
                       <div className="text-5xl font-black tabular-nums" style={{ color: (userStats.rating ?? 0) >= 0 ? '#c9a84c' : '#ef4444' }}>
-                        {(userStats.rating ?? 0) >= 0 ? '+' : ''}{userStats.rating ?? 0}
+                        {userStats.rating ?? 0}
                       </div>
                     </div>
-
-                    {/* Core stats 2×3 grid */}
                     <div className="grid grid-cols-2 gap-2">
                       {[
                         { label: t('stat_games_played'), value: userStats.games_played ?? 0 },
@@ -1073,15 +1245,13 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                         { label: t('stat_total_score'),  value: userStats.total_score ?? 0 },
                         { label: t('stat_time'),         value: (userStats.time_played_minutes ?? 0) < 60 ? `${userStats.time_played_minutes ?? 0}m` : `${Math.round((userStats.time_played_minutes ?? 0) / 60)}h` },
                       ].map(({ label, value, gold }) => (
-                        <div key={label} className="rounded-xl p-3" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
+                        <div key={label} style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12, padding: '14px 16px' }}>
                           <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: '#364060' }}>{label}</div>
                           <div className="text-2xl font-bold tabular-nums" style={{ color: gold ? '#c9a84c' : '#e8d5a3' }}>{value}</div>
                         </div>
                       ))}
                     </div>
-
-                    {/* Placement breakdown */}
-                    <div className="rounded-xl p-4" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
+                    <div style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12, padding: '14px 16px' }}>
                       <div className="text-[9px] uppercase tracking-wider mb-3" style={{ color: '#364060' }}>{t('stat_placements')}</div>
                       <div className="flex gap-1">
                         {[
@@ -1097,14 +1267,12 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                         ))}
                       </div>
                     </div>
-
-                    {/* Special stats */}
                     <div className="grid grid-cols-2 gap-2">
-                      <div className="rounded-xl p-3" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
+                      <div style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12, padding: '14px 16px' }}>
                         <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: '#364060' }}>{t('stat_full_takes')}</div>
                         <div className="text-2xl font-bold tabular-nums" style={{ color: '#e8d5a3' }}>{userStats.full_take_count ?? 0}</div>
                       </div>
-                      <div className="rounded-xl p-3" style={{ background: '#0a1422', border: '1px solid #1a2840' }}>
+                      <div style={{ background: '#0a1422', border: '1px solid #1a2840', borderRadius: 12, padding: '14px 16px' }}>
                         <div className="text-[9px] uppercase tracking-wider mb-1" style={{ color: '#364060' }}>{t('stat_zero_bids')}</div>
                         <div className="text-2xl font-bold tabular-nums" style={{ color: '#e8d5a3' }}>{userStats.zero_bid_success_count ?? 0}</div>
                       </div>
@@ -1134,7 +1302,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                   ) : (
                     <>
                       {/* header row */}
-                      <div className="flex items-center px-4 py-2" style={{ borderBottom: '1px solid #1a2535' }}>
+                      <div className="flex items-center" style={{ padding: '8px 28px', borderBottom: '1px solid #1a2535' }}>
                         <span className="text-[9px] uppercase tracking-[0.18em] font-bold flex-1" style={{ color: '#2e4060' }}>{t('col_player')}</span>
                         <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-right" style={{ color: '#2e4060', width: 36 }}>{t('col_score')}</span>
                         <span className="text-[9px] uppercase tracking-[0.18em] font-bold text-right" style={{ color: 'rgba(201,168,76,0.5)', width: 40 }}>🪙</span>
@@ -1147,7 +1315,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                         const date = new Date(g.created_at)
                         const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`
                         return (
-                          <div key={g.id} className="flex items-center px-4 py-3"
+                          <div key={g.id} className="flex items-center" style={{ padding: '12px 28px' }}
                             style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)', borderBottom: '1px solid rgba(26,37,53,0.5)' }}>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
@@ -1175,33 +1343,10 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                 </div>
               )}
 
-              {/* ── Account tab ── */}
-              {profileTab === 'account' && (
-                <div className="p-8 flex flex-col gap-5">
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs uppercase tracking-wider font-bold" style={{ color: '#364060' }}>{t('acct_username')}</span>
-                    <TextInput placeholder={user.username} value={''} onChange={() => {}} />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs uppercase tracking-wider font-bold" style={{ color: '#364060' }}>{t('acct_email')}</span>
-                    <TextInput placeholder={user.email ?? t('acct_not_set')} value={''} onChange={() => {}} type="email" />
-                  </div>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-xs uppercase tracking-wider font-bold" style={{ color: '#364060' }}>{t('acct_new_pw')}</span>
-                    <TextInput placeholder="••••••••" value={''} onChange={() => {}} type="password" />
-                  </div>
-                  {onOpenCabinet && (
-                    <button onClick={() => { closeModal(); onOpenCabinet() }}
-                      className="w-full rounded-xl font-bold text-base transition-all hover:brightness-110 mt-1 flex items-center justify-center"
-                      style={{ height: 72, background: 'rgba(201,168,76,0.1)', border: '1px solid rgba(201,168,76,0.25)', color: '#c9a84c' }}>
-                      {t('acct_change_avatar')}
-                    </button>
-                  )}
-                  <button disabled
-                    className="w-full rounded-xl font-bold text-base opacity-40 cursor-not-allowed mt-1 flex items-center justify-center"
-                    style={{ height: 72, background: '#c9a84c', color: '#07090e' }}>
-                    {t('acct_save_soon')}
-                  </button>
+              {/* ── Friends tab ── */}
+              {profileTab === 'friends' && (
+                <div style={{ padding: '20px 28px' }}>
+                  <FriendsTab onlineMap={onlineMap} />
                 </div>
               )}
             </>
@@ -1269,7 +1414,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                     onChange={e => setAuthPassword(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleAuthSubmit()} />
                   {authMode === 'login' && (
                     <button onClick={() => { setForgotMode(true); setAuthErr('') }}
-                      style={{ color: '#364060', fontSize: 11, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', padding: 0, marginTop: -8 }}>
+                      style={{ color: '#6a8aaa', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer', textAlign: 'right', padding: 0, marginTop: -8, textDecoration: 'underline' }}>
                       Forgot password?
                     </button>
                   )}

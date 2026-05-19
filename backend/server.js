@@ -274,6 +274,9 @@ app.get('/api/rooms', (req, res) => {
       status:         room.status,
       hasPassword:    !!room.passwordHash,
       spectatorCount: room.spectatorCount,
+      gameMode:       room.gameMode    ?? 'normal',
+      isRanked:       !!room.isRanked,
+      playInPairs:    !!room.playInPairs,
     });
   }
   res.json(rooms);
@@ -1186,6 +1189,8 @@ io.on('connection', (socket) => {
         lastBidUntouchable:   gameRoom.lastBidUntouchable,
       });
       io.to(roomId).emit('player_joined', { players, playerCount: gameRoom.players.size });
+      // Push hand immediately so the player doesn't have to wait for the next sync interval
+      if (gameRoom.status === 'playing') emitHandUpdate(roomId, playerId);
       console.log(`Player ${playerId} rejoined room ${roomId}`);
     } catch (error) {
       console.error('Error rejoining game:', error);

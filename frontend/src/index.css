@@ -51,9 +51,9 @@
 }
 
 [data-theme="light"] {
-  --lobby-bg:        #f4f1e8;
-  --lobby-card-bg:   #faf9f4;
-  --lobby-card-bord: #d8d0b8;
+  --lobby-bg:        #ede8d4;
+  --lobby-card-bg:   #f8f6ee;
+  --lobby-card-bord: #ccc4a8;
   --lobby-text:      #2a1f0a;
   --lobby-text-dim:  #8a7a5a;
 
@@ -82,14 +82,14 @@
   --table-empty-fg:  #9a9080;
   --table-hdr-fg:    #4a3820;
 
-  --lobby-gradient:     radial-gradient(ellipse at 50% 5%, #cbc49a 0%, #dcd5b5 45%, #edeadb 100%);
-  --lobby-title-color:  #3a2a08;
-  --lobby-title-shadow: 0 0 30px rgba(201,168,76,0.25), 0 2px 6px rgba(0,0,0,0.12);
-  --lobby-sub-color:    #7a6a4a;
-  --ctrl-bg:            #e0dcd0;
-  --ctrl-border:        1px solid #c0b8a0;
-  --ctrl-color:         #6a6050;
-  --ctrl-shadow:        0 4px 16px rgba(192,184,160,0.4);
+  --lobby-gradient:     radial-gradient(ellipse at 50% 0%, #b09838 0%, #c2ab58 14%, #d0be78 32%, #ddd09c 55%, #e8e0be 78%, #f2edda 100%);
+  --lobby-title-color:  #2e1e04;
+  --lobby-title-shadow: 0 0 50px rgba(180,140,40,0.4), 0 2px 8px rgba(0,0,0,0.2);
+  --lobby-sub-color:    #6a5a38;
+  --ctrl-bg:            #d8d2c0;
+  --ctrl-border:        1px solid #a89880;
+  --ctrl-color:         #5a5040;
+  --ctrl-shadow:        0 4px 16px rgba(160,152,128,0.45);
 }
 
 /* ── Card fly-in animations (TrickArea) ── */

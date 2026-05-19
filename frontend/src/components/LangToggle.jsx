@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { useLang } from '../context/LangContext'
 
 const FLAGS      = { en: '🇬🇧', ka: '🇬🇪', ru: '🇷🇺' }
-const LABELS     = { en: 'EN',      ka: 'KA',      ru: 'RU'      }
+const LABELS     = { en: 'ENG',     ka: 'GEO',     ru: 'RUS'     }
 const FULL_NAMES = { en: 'English', ka: 'Georgian', ru: 'Russian' }
 const LANGS      = ['en', 'ka', 'ru']
 
-export default function LangToggle({ labeled = false, compact = false }) {
+export default function LangToggle({ labeled = false, compact = false, triggerStyle: triggerStyleOverride = {} }) {
   const { lang, setLang } = useLang()
   const [open, setOpen]   = useState(false)
   const ref               = useRef(null)
@@ -57,25 +57,25 @@ export default function LangToggle({ labeled = false, compact = false }) {
     boxShadow:     'var(--ctrl-shadow)',
     lineHeight:    1,
   } : {
-    display:      'flex',
-    alignItems:   'center',
-    gap:          6,
-    padding:      '7px 11px',
-    borderRadius: '0.625rem',
-    background:   'rgba(8,8,12,0.84)',
-    border:       '1px solid #2a2a38',
-    cursor:       'pointer',
-    lineHeight:   1,
+    display:        'flex',
+    alignItems:     'center',
+    justifyContent: 'center',
+    gap:            4,
+    width:          58,
+    height:         38,
+    padding:        0,
+    borderRadius:   '0.625rem',
+    background:     'rgba(8,8,12,0.84)',
+    border:         '1px solid #2a2a38',
+    cursor:         'pointer',
+    lineHeight:     1,
+    ...triggerStyleOverride,
   }
 
   return (
     <div ref={ref} style={{ position: 'relative', display: 'inline-block' }}>
       <button onClick={() => setOpen(o => !o)} style={triggerStyle}>
-        <span style={{ fontSize: labeled ? 18 : 22 }}>{FLAGS[lang]}</span>
-        {labeled
-          ? <span>{FULL_NAMES[lang]}</span>
-          : <span style={{ fontSize: 12, fontWeight: 700, color: '#9090aa', letterSpacing: '0.08em' }}>{LABELS[lang]}</span>
-        }
+        <span style={{ fontSize: 12, fontWeight: 900, letterSpacing: '0.08em' }}>{LABELS[lang]}</span>
         <span style={{ fontSize: 9, color: '#4a4a5a', marginLeft: 1 }}>{open ? '▴' : '▾'}</span>
       </button>
 

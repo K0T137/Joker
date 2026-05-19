@@ -24,11 +24,11 @@ export function getDeckTheme() {
 
 function parseCard(cardId) {
   if (!cardId || cardId.startsWith('JOKER')) {
-    return { rank: 'JKR', suit: '★', isJoker: true }
+    return { rank: 'JKR', suit: '★', isJoker: true, jokerNum: cardId?.endsWith('2') ? 2 : 1 }
   }
   const suit = cardId[0]       // ♠ ♥ ♦ ♣
   const rank = cardId.slice(1) // 6 7 8 9 10 J Q K A
-  return { rank, suit, isJoker: false }
+  return { rank, suit, isJoker: false, jokerNum: 0 }
 }
 
 // Small-card overrides — columns at 35/65 (tighter than 27/73), rows compressed toward centre
@@ -181,14 +181,48 @@ function SpriteCardFace({ rank, suit, displayW, displayH }) {
   )
 }
 
+function JokerCardFace({ jokerNum, small, medium }) {
+  const color    = jokerNum === 1 ? '#c9a84c' : '#9333ea'
+  const tint     = jokerNum === 1 ? 'rgba(201,168,76,0.13)' : 'rgba(147,51,234,0.13)'
+  const rankFs   = small ? 7 : medium ? 8  : 10
+  const cornerFs = small ? 5 : medium ? 6  : 7.5
+
+  return (
+    <>
+      {/* Full-card illustration */}
+      <div className="absolute inset-0 overflow-hidden" style={{ borderRadius: 'inherit' }}>
+        <img
+          src="/joker.JPG"
+          alt=""
+          draggable={false}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center', display: 'block', userSelect: 'none' }}
+        />
+        {/* Colour tint so J1 (gold) and J2 (purple) are visually distinct */}
+        <div style={{ position: 'absolute', inset: 0, background: tint, mixBlendMode: 'multiply' }} />
+      </div>
+
+      {/* Top-left corner */}
+      <div className="absolute top-1 left-1.5 font-black leading-none select-none" style={{ color, textShadow: '0 0 5px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,1)' }}>
+        <div style={{ fontSize: rankFs, lineHeight: 1.1 }}>J</div>
+        <div style={{ fontSize: cornerFs, lineHeight: 1, textAlign: 'center' }}>★</div>
+      </div>
+
+      {/* Bottom-right corner (rotated 180°) */}
+      <div className="absolute bottom-1 right-1.5 font-black leading-none rotate-180 select-none" style={{ color, textShadow: '0 0 5px rgba(255,255,255,0.9), 0 0 2px rgba(255,255,255,1)' }}>
+        <div style={{ fontSize: rankFs, lineHeight: 1.1 }}>J</div>
+        <div style={{ fontSize: cornerFs, lineHeight: 1, textAlign: 'center' }}>★</div>
+      </div>
+    </>
+  )
+}
+
 // normal → w-20 h-28  (80×112 px)
 // medium → w-[72px] h-24  (72×96 px)
 // small  → w-12 h-16  (48×64 px)
 export default function Card({ cardId, faceDown = false, small = false, medium = false, selected = false, onClick, className = '' }) {
-  const w           = small ? 'w-12 h-16' : medium ? 'w-[72px] h-24' : 'w-20 h-28'
-  const jokerIconFs = small ? 58 : medium ? 90 : 106
-  const displayW    = small ? 48 : medium ? 72 : 80
-  const displayH    = small ? 64 : medium ? 96 : 112
+  const w        = small ? 'w-12 h-16' : medium ? 'w-[72px] h-24' : 'w-20 h-28'
+  const displayW = small ? 48 : medium ? 72 : 80
+  const displayH = small ? 64 : medium ? 96 : 112
   const { suitCardHex, cardStyle } = usePrefs()
 
   if (faceDown) {
@@ -209,8 +243,12 @@ export default function Card({ cardId, faceDown = false, small = false, medium =
     )
   }
 
-  const { rank, suit, isJoker } = parseCard(cardId)
-  const color = isJoker ? '#9333ea' : suitCardHex(suit)
+  const { rank, suit, isJoker, jokerNum } = parseCard(cardId)
+  const color       = suitCardHex(suit)
+  const jokerAccent = jokerNum === 1 ? 'rgba(201,168,76,0.5)' : 'rgba(147,51,234,0.5)'
+  const jokerBg     = jokerNum === 1
+    ? 'linear-gradient(160deg, #fffef8 0%, #fffaed 100%)'
+    : 'linear-gradient(160deg, #fefeff 0%, #f8f2ff 100%)'
 
   // Corner: rank number size and suit character size — reduced 25% from original
   const rankFs   = small ? 7  : medium ? 8  : 10
@@ -219,20 +257,16 @@ export default function Card({ cardId, faceDown = false, small = false, medium =
   return (
     <div
       onClick={onClick}
-      className={`
-        ${w} relative rounded-lg bg-white select-none flex-shrink-0
-        ${onClick ? 'cursor-pointer' : ''}
-        ${className}
-      `}
+      className={`${w} relative rounded-lg select-none flex-shrink-0 ${onClick ? 'cursor-pointer' : ''} ${className}`}
       style={selected
-        ? { border: '1.5px solid #c9a84c', boxShadow: '0 0 0 2px rgba(201,168,76,0.35), 0 6px 18px rgba(0,0,0,0.28)' }
-        : { border: '1px solid #d1d5db', boxShadow: '0 2px 6px rgba(0,0,0,0.18)' }
+        ? { background: isJoker ? jokerBg : '#fff', border: '1.5px solid #c9a84c', boxShadow: '0 0 0 2px rgba(201,168,76,0.35), 0 6px 18px rgba(0,0,0,0.28)' }
+        : isJoker
+          ? { background: jokerBg, border: `1.5px solid ${jokerAccent}`, boxShadow: '0 2px 6px rgba(0,0,0,0.18)' }
+          : { background: '#fff', border: '1px solid #d1d5db', boxShadow: '0 2px 6px rgba(0,0,0,0.18)' }
       }
     >
       {isJoker ? (
-        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
-          <span style={{ fontSize: jokerIconFs, lineHeight: 1, display: 'block' }}>🃏</span>
-        </div>
+        <JokerCardFace jokerNum={jokerNum} small={small} medium={medium} />
       ) : cardStyle === 'sprite' ? (
         <SpriteCardFace rank={rank} suit={suit} displayW={displayW} displayH={displayH} />
       ) : cardStyle === 'hybrid' && HYBRID_SPRITE_RANKS.has(rank) ? (

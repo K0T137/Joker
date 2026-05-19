@@ -70,20 +70,29 @@ function Slide({ t, index }) {
   )
 
   if (index === 1) return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
       <div style={{ fontSize: 18, fontWeight: 900, color: '#c9a84c', textAlign: 'center' }}>{t('tut_s2_title')}</div>
       <div style={{ fontSize: 13, color: '#8a9ab8', textAlign: 'center', lineHeight: 1.6 }}>{t('tut_s2_body')}</div>
-      <div style={{ display: 'flex', gap: 4, flexWrap: 'nowrap', justifyContent: 'center', alignItems: 'flex-start' }}>
-        {['6','7','8','9','10','J','Q','K','A'].map(r => (
-          <MiniCard key={r} rank={r} suit="♥" small />
-        ))}
-      </div>
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'flex-start' }}>
-        <JokerCard small />
-        <JokerCard small />
-      </div>
-      <div style={{ fontSize: 12, color: '#4a5570', background: '#0a1422', border: '1px solid #1a2840', borderRadius: 10, padding: '8px 14px', textAlign: 'center' }}>
-        {t('tut_s2_note')}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#dc2626' }}>♥ ♦ &nbsp; 6 → A</div>
+          <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {['6','7','8','9','10','J','Q','K','A'].map(r => <MiniCard key={r} rank={r} suit="♥" small />)}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8' }}>♠ ♣ &nbsp; 7 → A</div>
+          <div style={{ display: 'flex', gap: 3, flexWrap: 'wrap', justifyContent: 'center' }}>
+            {['7','8','9','10','J','Q','K','A'].map(r => <MiniCard key={r} rank={r} suit="♠" small />)}
+          </div>
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: '#c9a84c' }}>+ 2 Jokers</div>
+          <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+            <JokerCard small />
+            <JokerCard small />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -92,6 +101,10 @@ function Slide({ t, index }) {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
       <div style={{ fontSize: 18, fontWeight: 900, color: '#c9a84c', textAlign: 'center' }}>{t('tut_s3_title')}</div>
       <div style={{ fontSize: 13, color: '#8a9ab8', textAlign: 'center', lineHeight: 1.6 }}>{t('tut_s3_body')}</div>
+      {/* Special rule callout */}
+      <div style={{ fontSize: 12, color: '#c9a84c', background: 'rgba(201,168,76,0.08)', border: '1px solid rgba(201,168,76,0.3)', borderRadius: 10, padding: '8px 14px', textAlign: 'center', width: '100%' }}>
+        ⚠ {t('tut_s3_rule')}
+      </div>
       {/* Trick definition note */}
       <div style={{ fontSize: 12, color: '#8a9ab8', background: '#0a1422', border: '1px solid #1a2840', borderRadius: 10, padding: '8px 14px', textAlign: 'center', width: '100%' }}>
         {t('tut_s3_trick_def')}
@@ -143,6 +156,7 @@ function Slide({ t, index }) {
           </div>
         </div>
       </div>
+      <div style={{ fontSize: 11, color: '#c9a84c', textAlign: 'center' }}>{t('tut_s4_caption')}</div>
       <div style={{ fontSize: 12, color: '#8a9ab8', background: '#0a1422', border: '1px solid #1a2840', borderRadius: 10, padding: '8px 14px', textAlign: 'center' }}>
         {t('tut_s4_note')}
       </div>
@@ -174,9 +188,11 @@ function Slide({ t, index }) {
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
       <div style={{ fontSize: 18, fontWeight: 900, color: '#c9a84c', textAlign: 'center' }}>{t('tut_s6_title')}</div>
       <div style={{ width: '100%' }}>
+        <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#4ade80', marginBottom: 5 }}>✓ {t('tut_s6_hit')}</div>
         <ScoreRow label={t('tut_score_zero')}   value="+50"  highlight />
         <ScoreRow label={t('tut_score_exact')}  value={t('tut_score_exact_val')} highlight />
         <ScoreRow label={t('tut_score_full')}   value={t('tut_score_full_val')}  highlight />
+        <div style={{ fontSize: 10, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#ef4444', marginTop: 8, marginBottom: 5 }}>✗ {t('tut_s6_miss')}</div>
         <ScoreRow label={t('tut_score_miss')}   value={t('tut_score_miss_val')}  />
         <ScoreRow label={t('tut_score_hisht')}  value={t('tut_score_hisht_val')} negative />
       </div>

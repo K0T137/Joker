@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret-change-in-prod'
 
 function makeJwt(user) {
   return jwt.sign(
-    { id: user.id, username: user.username, avatarId: user.avatar_id ?? 1, isGuest: false },
+    { id: user.id, username: user.username, email: user.email ?? null, avatarId: user.avatar_id ?? 1, isGuest: false },
     JWT_SECRET,
     { expiresIn: '30d' }
   )

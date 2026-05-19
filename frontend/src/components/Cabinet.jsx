@@ -293,7 +293,7 @@ function AvatarTab({ profile }) {
 }
 
 // ── Friends tab ────────────────────────────────────────────────────────────────
-function FriendsTab({ onlineMap }) {
+export function FriendsTab({ onlineMap }) {
   const { user, API_URL } = useAuth()
   const t = useT()
   const [section,    setSection]    = useState('friends')  // 'friends'|'pending'|'blocked'

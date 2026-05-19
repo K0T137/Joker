@@ -3,6 +3,7 @@ import { io } from 'socket.io-client'
 import GameRoom from './components/GameRoom'
 import Lobby from './components/Lobby'
 import RematchToast from './components/overlays/RematchToast'
+import DailyBonusModal from './components/overlays/DailyBonusModal'
 import Cabinet from './components/Cabinet'
 import CardPreview from './components/CardPreview'
 import './index.css'
@@ -25,6 +26,7 @@ export default function App() {
   const t = useT()
   const [theme, setTheme] = useTheme()
   const { fourColor, toggleFourColor } = usePrefs()
+  const [dailyBonus,   setDailyBonus]   = useState(null)
   const [cabinetOpen,     setCabinetOpen]     = useState(false)
   const [devPreviewOpen,  setDevPreviewOpen]  = useState(false)
   const [socket,       setSocket]       = useState(null)
@@ -80,6 +82,17 @@ export default function App() {
   }
 
   const playerName = (id) => playersRef.current.find(p => p.id === id)?.name ?? '?'
+
+  // Claim daily bonus once per session when user is authenticated
+  useEffect(() => {
+    if (!user?.id) return
+    const token = localStorage.getItem('joker_token')
+    if (!token) return
+    fetch('/api/auth/daily-bonus', { headers: { Authorization: `Bearer ${token}` } })
+      .then(r => r.ok ? r.json() : null)
+      .then(data => { if (data?.claimed) setDailyBonus(data) })
+      .catch(() => {})
+  }, [user?.id])
 
   useEffect(() => {
     const socketUrl = import.meta.env.VITE_SOCKET_URL ?? ''
@@ -699,31 +712,28 @@ export default function App() {
   // Hide topBar when portrait+in-game (lang/theme live inside portrait controls bar instead)
   const inGame = !!(gameState && (playerId || isSpectator))
   const topBar = isPortraitMobile && inGame ? null : (
-    <div className="fixed top-3 left-4 z-50 flex items-center gap-3">
-      <LangToggle labeled={!isPortraitMobile} />
-      <ThemeToggle labeled={!isPortraitMobile} theme={theme} onToggle={() => setTheme(th => th === 'dark' ? 'light' : 'dark')} />
+    <div className="fixed top-3 left-4 z-50" style={{ display: 'flex', alignItems: 'center', background: 'rgba(8,8,12,0.82)', border: '1px solid #252530', borderRadius: '0.875rem', padding: '3px', gap: '2px' }}>
+      <LangToggle triggerStyle={{ background: 'transparent', border: 'none' }} />
+      <ThemeToggle theme={theme} onToggle={() => setTheme(th => th === 'dark' ? 'light' : 'dark')} style={{ background: 'transparent', border: 'none' }} />
       <button
         onClick={toggleFourColor}
         title="Four-color suits"
         style={{
-          display: 'flex', alignItems: 'center', gap: isPortraitMobile ? 0 : 8,
-          padding: isPortraitMobile ? '7px 10px' : '18px 32px',
-          borderRadius: isPortraitMobile ? '0.625rem' : '1rem',
-          background: fourColor ? 'rgba(59,130,246,0.15)' : isPortraitMobile ? 'rgba(8,8,12,0.84)' : 'var(--ctrl-bg)',
-          border: fourColor ? '1px solid rgba(59,130,246,0.5)' : isPortraitMobile ? '1px solid #2a2a38' : 'var(--ctrl-border)',
-          cursor: 'pointer', color: fourColor ? '#3b82f6' : 'var(--ctrl-color)',
-          fontWeight: 900, fontSize: isPortraitMobile ? 20 : 14,
-          letterSpacing: isPortraitMobile ? 0 : '0.14em', textTransform: 'uppercase',
-          boxShadow: isPortraitMobile ? 'none' : 'var(--ctrl-shadow)', lineHeight: 1,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          width: 58, height: 38, padding: 0,
+          borderRadius: '0.625rem',
+          background: fourColor ? 'rgba(59,130,246,0.15)' : 'transparent',
+          border: fourColor ? '1px solid rgba(59,130,246,0.4)' : 'none',
+          cursor: 'pointer', color: fourColor ? '#3b82f6' : '#6a7a9a',
+          fontSize: 18, lineHeight: 1,
         }}
       >
-        <span style={{ fontSize: isPortraitMobile ? 18 : 16 }}>
-          <span style={{ color: '#1a1a2e' }}>♠</span>
+        <span>
+          <span style={{ color: '#4a4a6a' }}>♠</span>
           <span style={{ color: '#dc2626' }}>♥</span>
-          <span style={{ color: fourColor ? '#3b82f6' : '#6a6a8a' }}>♦</span>
+          <span style={{ color: fourColor ? '#3b82f6' : '#dc2626' }}>♦</span>
           <span style={{ color: fourColor ? '#22c55e' : '#6a6a8a' }}>♣</span>
         </span>
-        {!isPortraitMobile && <span>{fourColor ? '4C' : '2C'}</span>}
       </button>
     </div>
   )
@@ -737,7 +747,9 @@ export default function App() {
           onSpectateGame={handleSpectateGame}
           onQuickStartWithBots={handleQuickStartWithBots}
           inviteRoomCode={inviteRoomCode}
+          theme={theme}
           onOpenCabinet={() => setCabinetOpen(true)}
+          onlineMap={onlineMap}
           socket={socket}
           lobbyMessages={lobbyMessages}
           lobbyChatOpen={lobbyChatOpen}
@@ -747,6 +759,7 @@ export default function App() {
         {devButton}
         {cabinetOpen && <Cabinet onClose={() => setCabinetOpen(false)} onlineMap={onlineMap} />}
         {devPreviewOpen && <CardPreview onClose={() => setDevPreviewOpen(false)} />}
+        {dailyBonus && <DailyBonusModal bonus={dailyBonus} onClose={() => setDailyBonus(null)} />}
       </>
     )
   }

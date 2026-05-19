@@ -81,11 +81,12 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
     return () => clearInterval(id)
   }, [autoStartAt])
 
-  // Fetch hand at the start of bidding OR trump_selection — spectators never have a hand
+  // Fetch hand whenever phase changes to bidding, trump_selection, or playing.
+  // 'playing' covers the reconnect/page-reload case where state arrives already in-progress.
   useEffect(() => {
     if (isSpectator) return
     const phase = gameState?.gameState?.phase
-    if (!socket || (phase !== 'bidding' && phase !== 'trump_selection')) return
+    if (!socket || !['bidding', 'trump_selection', 'playing'].includes(phase)) return
     socket.emit('get_hand', { roomId: gameState.roomId, playerId }, (res) => {
       if (res.success) setHand(res.cards)
     })
@@ -887,8 +888,8 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
                 onClick={toggleFourColor}
                 title={fourColor ? 'Four-color suits: ON' : 'Four-color suits: OFF'}
                 className="hover:brightness-125 transition-all font-bold"
-                style={{ background: 'rgba(8,8,12,0.85)', border: `1px solid ${fourColor ? '#3b82f6' : '#2a2a38'}`,
-                  color: fourColor ? '#3b82f6' : '#4a4a5a',
+                style={{ background: 'rgba(8,8,12,0.85)', border: `1px solid ${fourColor ? '#3b82f6' : '#3a1a1a'}`,
+                  color: fourColor ? '#3b82f6' : '#dc2626',
                   borderRadius: '0.75rem', padding: '8px 12px', fontSize: 18, lineHeight: 1, cursor: 'pointer' }}
               >
                 ♦
