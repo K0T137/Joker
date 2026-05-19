@@ -451,13 +451,17 @@ function startHeartbeat(roomId) {
       const missed = (heartbeatMissed.get(p.socketId) ?? 0) + 1;
       heartbeatMissed.set(p.socketId, missed);
       io.to(p.socketId).emit('heartbeat');
-      if (missed >= 2 && !substitutionTimers.has(pid)) {
-        console.warn(`[heartbeat] ${pid} missed ${missed} beats in ${roomId} — substituting`);
-        gr.setSubstituted(pid, true);
-        loggers.get(roomId)?.log('player_substituted', { playerId: pid, reason: 'frozen' });
-        io.to(roomId).emit('player_substituted', { playerId: pid, reason: 'disconnected' });
-        if (process.env.DATABASE_URL) incrementAfkCount(p.userId).catch(() => {});
-        scheduleBotTurn(roomId);
+      // After 2 missed beats push a full state refresh to try to unstick the client.
+      // Substitution is left entirely to the existing disconnect / turn-timer path.
+      if (missed >= 2) {
+        console.warn(`[heartbeat] ${pid} missed ${missed} beats in ${roomId} — pushing state refresh`);
+        io.to(p.socketId).emit('state_sync', {
+          gameState: gr.gameState?.getState() ?? null,
+          players:   formatPlayers(gr),
+        });
+        if (gr.gameState) {
+          io.to(p.socketId).emit('hand_update', { cards: gr.gameState.getPlayerHand(pid) });
+        }
       }
     }
   }, 15_000);
