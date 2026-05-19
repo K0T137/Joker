@@ -1345,8 +1345,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                         const date = new Date(g.created_at)
                         const dateStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`
                         return (
-                          <div key={g.id} className="flex items-center" style={{ padding: '12px 28px' }}
-                            style={{ background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)', borderBottom: '1px solid rgba(26,37,53,0.5)' }}>
+                          <div key={g.id} className="flex items-center" style={{ padding: '12px 28px', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.015)', borderBottom: '1px solid rgba(26,37,53,0.5)' }}>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2">
                                 <span style={{ fontSize: g.placement <= 3 ? 16 : 11, color: placeColor, fontWeight: 700, minWidth: 24 }}>
