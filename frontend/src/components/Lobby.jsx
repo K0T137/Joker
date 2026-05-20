@@ -442,7 +442,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
   const [botsOpen,        setBotsOpen]        = useState(false)
   const [autoMatchMode,   setAutoMatchMode]   = useState('normal')
   const [autoMatchRanked, setAutoMatchRanked] = useState(false)
-  const [botsMode,        setBotsMode]        = useState('normal')
+  const [botsMode,        setBotsMode]        = useState('quick')
 
   // ── leaderboard state ──
   const [leaderboard, setLeaderboard] = useState([])

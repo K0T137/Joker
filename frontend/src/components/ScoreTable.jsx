@@ -32,7 +32,7 @@ function HishtMark() {
   return <span style={{ textDecoration: 'line-through', color: '#ef4444', letterSpacing: '-1px' }}>I--I</span>
 }
 
-// Full pulka structure for both game modes
+// Full pulka structure for all game modes
 const STRUCTURES = {
   normal: {
     1: [1, 2, 3, 4, 5, 6, 7, 8],
@@ -45,6 +45,10 @@ const STRUCTURES = {
     2: [9, 9, 9, 9],
     3: [9, 9, 9, 9],
     4: [9, 9, 9, 9],
+  },
+  quick: {
+    1: [1, 2, 3, 4, 5, 6, 7, 8],
+    2: [9, 9, 9, 9],
   },
 }
 
@@ -160,7 +164,7 @@ export default function ScoreTable({
       </thead>
 
       <tbody>
-        {[1, 2, 3, 4].map(pulkaNum => {
+        {Object.keys(structure).map(Number).map(pulkaNum => {
           const pulkaStructure = structure[pulkaNum] ?? []
           const pulkaEnd       = pulkaEndByPulka[pulkaNum]
 

@@ -424,7 +424,7 @@ function startSyncInterval(roomId) {
           gr.setSubstituted(pid, true);
           loggers.get(roomId)?.log('player_substituted', { playerId: pid, reason: 'stuck' });
           io.to(roomId).emit('player_substituted', { playerId: pid, reason: 'disconnected' });
-          if (process.env.DATABASE_URL) incrementAfkCount(p.userId).catch(() => {});
+          if (process.env.DATABASE_URL && !roomHasBots(gr)) incrementAfkCount(p.userId).catch(() => {});
           scheduleBotTurn(roomId);
         }
       }
@@ -505,6 +505,13 @@ function clearTurnTimer(roomId) {
   }
 }
 
+// Returns true when at least one seat was originally a bot — honor/AFK penalties
+// only apply to all-human games.
+function roomHasBots(gr) {
+  for (const [, p] of gr.players) { if (p.isBot) return true }
+  return false
+}
+
 /**
  * Start (or restart) a 2-minute inactivity timer for the player whose turn it
  * currently is.  When it fires the player is marked as substituted and the bot
@@ -536,7 +543,7 @@ function resetTurnTimer(roomId) {
     loggers.get(roomId)?.log('player_substituted', { playerId: actorId, reason: 'inactive' });
     io.to(roomId).emit('player_substituted', { playerId: actorId, reason: 'inactive' });
     console.log(`[sub] ${actorId} substituted (inactive) in ${roomId}`);
-    if (process.env.DATABASE_URL) incrementAfkCount(p.userId).catch(() => {});
+    if (process.env.DATABASE_URL && !roomHasBots(gr)) incrementAfkCount(p.userId).catch(() => {});
     scheduleBotTurn(roomId);
   }, SUBSTITUTION_DELAY_MS);
 
@@ -1384,7 +1391,7 @@ io.on('connection', (socket) => {
         }
       }
 
-      if (process.env.DATABASE_URL && target.userId) decrementHonorRate(target.userId).catch(() => {});
+      if (process.env.DATABASE_URL && target.userId && !roomHasBots(gameRoom)) decrementHonorRate(target.userId).catch(() => {});
       gameRoom.removePlayer(targetId);
       playerSockets.delete(targetId);
       cancelRoomStart(roomId);
@@ -1970,7 +1977,7 @@ io.on('connection', (socket) => {
               loggers.get(roomId)?.log('player_substituted', { playerId, reason: 'disconnected' });
               io.to(roomId).emit('player_substituted', { playerId, reason: 'disconnected' });
               console.log(`[sub] ${playerId} substituted (disconnected) in ${roomId}`);
-              if (process.env.DATABASE_URL) incrementAfkCount(p.userId).catch(() => {});
+              if (process.env.DATABASE_URL && !roomHasBots(gr)) incrementAfkCount(p.userId).catch(() => {});
               scheduleBotTurn(roomId);
             }, SUBSTITUTION_DELAY_MS);
             substitutionTimers.set(playerId, timer);
