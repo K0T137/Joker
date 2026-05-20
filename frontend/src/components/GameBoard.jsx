@@ -3,11 +3,11 @@ import Card from './Card'
 import JokerActionPopup from './JokerActionPopup'
 import { useT } from '../context/LangContext'
 
-const CARD_W = 80
-const STEP   = 30
+const CARD_W = 96
+const STEP   = 34
 const ANGLE  = 3
 
-const STEP_C  = 22
+const STEP_C  = 24
 const ANGLE_C = 2
 
 const RANK_ORDER = { '6': 0, '7': 1, '8': 2, '9': 3, '10': 4, 'J': 5, 'Q': 6, 'K': 7, 'A': 8 }
@@ -126,7 +126,7 @@ export default function GameBoard({ hand = [], onPlayCard, currentTrick = [], tr
     <div className="flex flex-col items-center gap-3">
 
       {/* ── Card fan ── */}
-      <div className="relative" style={{ width: containerW, height: 145 }}>
+      <div className="relative" style={{ width: containerW, height: 170 }}>
         {sortedHand.map((card, i) => {
           const angle  = (i - mid) * tilt
           const xOff   = (i - mid) * step

@@ -217,12 +217,12 @@ function JokerCardFace({ jokerNum, small, medium }) {
 }
 
 // normal → w-20 h-28  (80×112 px)
-// medium → w-[72px] h-24  (72×96 px)
+// medium → w-[86px] h-[116px]  (86×116 px)
 // small  → w-12 h-16  (48×64 px)
 export default function Card({ cardId, faceDown = false, small = false, medium = false, selected = false, onClick, className = '' }) {
-  const w        = small ? 'w-12 h-16' : medium ? 'w-[72px] h-24' : 'w-20 h-28'
-  const displayW = small ? 48 : medium ? 72 : 80
-  const displayH = small ? 64 : medium ? 96 : 112
+  const w        = small ? 'w-12 h-16' : medium ? 'w-[86px] h-[116px]' : 'w-24 h-[134px]'
+  const displayW = small ? 48 : medium ? 86 : 96
+  const displayH = small ? 64 : medium ? 116 : 134
   const { suitCardHex, cardStyle } = usePrefs()
 
   if (faceDown) {

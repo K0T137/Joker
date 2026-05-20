@@ -6,7 +6,7 @@ const LABELS     = { en: 'ENG',     ka: 'GEO',     ru: 'RUS'     }
 const FULL_NAMES = { en: 'English', ka: 'Georgian', ru: 'Russian' }
 const LANGS      = ['en', 'ka', 'ru']
 
-export default function LangToggle({ labeled = false, compact = false, dropdownRight = false, triggerStyle: triggerStyleOverride = {} }) {
+export default function LangToggle({ labeled = false, compact = false, dropdownRight = false, dropdownDown = false, triggerStyle: triggerStyleOverride = {} }) {
   const { lang, setLang } = useLang()
   const [open, setOpen]   = useState(false)
   const ref               = useRef(null)
@@ -28,7 +28,7 @@ export default function LangToggle({ labeled = false, compact = false, dropdownR
         {FLAGS[lang]}
       </button>
       {open && (
-        <div style={{ position: 'absolute', bottom: 'calc(100% + 6px)', left: 0, background: 'rgba(8,8,12,0.97)', border: '1px solid #2a2a38', borderRadius: '0.625rem', overflow: 'hidden', zIndex: 200, minWidth: 110, boxShadow: '0 8px 24px rgba(0,0,0,0.65)' }}>
+        <div style={{ position: 'absolute', ...(dropdownDown ? { top: 'calc(100% + 6px)' } : { bottom: 'calc(100% + 6px)' }), left: 0, background: 'rgba(8,8,12,0.97)', border: '1px solid #2a2a38', borderRadius: '0.625rem', overflow: 'hidden', zIndex: 200, minWidth: 110, boxShadow: '0 8px 24px rgba(0,0,0,0.65)' }}>
           {LANGS.map(l => (
             <button key={l} onClick={() => { setLang(l); setOpen(false) }} style={{ display: 'flex', alignItems: 'center', gap: 9, width: '100%', padding: '9px 13px', background: lang === l ? 'rgba(201,168,76,0.1)' : 'transparent', border: 'none', cursor: 'pointer', color: lang === l ? '#c9a84c' : '#7a7a9a', lineHeight: 1, textAlign: 'left' }}>
               <span style={{ fontSize: 20 }}>{FLAGS[l]}</span>

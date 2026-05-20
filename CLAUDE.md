@@ -155,7 +155,7 @@ Environment variables are set in the Railway dashboard. `DATABASE_URL` is inject
 
 ---
 
-## Project Status (as of 2026-05-20, v1.7)
+## Project Status (as of 2026-05-20, v1.8)
 
 **Live at:** https://jokr.online  
 **Railway service:** joker-production-9ce4.up.railway.app  
@@ -178,12 +178,17 @@ Environment variables are set in the Railway dashboard. `DATABASE_URL` is inject
 - Google OAuth + JWT auth
 - Admin panel
 - Joker crown title: `GET /api/leaderboard/king` returns the top-ranked player; `CrownBadge.jsx` + `useCrown()` hook display the crown in lobby leaderboard, chat, profile hero, and ScoreTable header
+- Play modal UX: 2-liner buttons (Auto Match / Quick Match with bots), left-aligned pills, Quick pre-selected for bots mode
+- Honor system skips penalty for bot-only games (`roomHasBots()` guard on all 4 AFK/ragequit call sites)
+- Card sizes increased ~20% (normal 96×134 px, medium 86×116 px); in-game zoom floor 0.8 prevents over-shrinking on narrow windows
+- Controls pill (ENG / theme / ♦) unified at top-left on both lobby and in-game; `dropdownDown` prop on LangToggle prevents dropdown going off-screen at top edge
 
 ### Known working decisions
 - Ghost waiting rooms: on server restart, waiting rooms are skipped (not restored) and marked abandoned in DB
 - index.html served with `no-cache, no-store, must-revalidate` so Railway deploys take effect immediately
 - Hashed assets (JS/CSS) served with `immutable, max-age=1y`
 - 123 unit tests in backend/test/ — run `npm test` before pushing
+- Card.jsx sizes: `small` = 48×64, `medium` = 86×116, `normal` = 96×134; GameBoard CARD_W=96, STEP=34, STEP_C=24, container height=170
 
 ---
 

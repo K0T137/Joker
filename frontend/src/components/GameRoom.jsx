@@ -34,7 +34,7 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
   const isPortraitNow = () => window.innerWidth < window.innerHeight && window.innerWidth < 600
   const getZoom = () => {
     if (isPortraitNow()) return 1
-    return Math.min(window.innerWidth / 1280, window.innerHeight / 832)
+    return Math.max(Math.min(window.innerWidth / 1280, window.innerHeight / 832), 0.8)
   }
   const [portrait, setPortrait] = useState(isPortraitNow)
   const [zoom, setZoom] = useState(getZoom)
@@ -49,7 +49,7 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
     const handler = () => {
       const p = isPortraitNow()
       setPortrait(p)
-      setZoom(p ? 1 : Math.min(window.innerWidth / 1280, window.innerHeight / 832))
+      setZoom(p ? 1 : Math.max(Math.min(window.innerWidth / 1280, window.innerHeight / 832), 0.8))
       setCompact(window.innerWidth < 640)
     }
     window.addEventListener('resize', handler)
@@ -726,11 +726,8 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
               <button onClick={isSpectator ? onLeaveGame : () => setLeaveConfirm(true)} style={{ ...btn40, fontSize: 16, color: '#8888a8' }}>✕</button>
               {!isSpectator && <button onClick={onToggleMute} style={{ ...btn40, color: isMuted ? '#ef4444' : '#6a6a8a' }}>{isMuted ? '🔇' : '🔔'}</button>}
               {!isSpectator && <button onClick={cycleTableTheme} style={{ ...btn40 }}>🎴</button>}
-              {!isSpectator && <button onClick={toggleFourColor} style={{ ...btn40, color: fourColor ? '#3b82f6' : '#4a4a5a', border: `1px solid ${fourColor ? '#3b82f6' : '#2a2a38'}` }}>♦</button>}
               {!isSpectator && <button onClick={() => setScorePanelOpen(o => !o)} style={{ ...btn40, color: '#c9a84c' }}>📊</button>}
               {onOpenCardPreview && <button onClick={onOpenCardPreview} style={{ ...btn40, color: '#6a6a8a' }}>🃏</button>}
-              <LangToggle compact />
-              <ThemeToggle theme={theme} onToggle={onToggleTheme} style={{ width: 40, height: 40, padding: 0 }} />
             </div>
           )
         })()}
@@ -799,6 +796,18 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
           <button className="shrink-0 underline opacity-80 hover:opacity-100" onClick={() => setBotErrorMsg(null)}>Dismiss</button>
         </div>
       )}
+
+      {/* ── Top-left: lang + theme toggles, always visible above scoreboard ── */}
+      <div style={{ position: 'fixed', top: 12, left: 12, zIndex: 60, display: 'flex', alignItems: 'center', background: 'rgba(8,8,12,0.5)', border: '1px solid rgba(37,37,48,0.4)', borderRadius: '0.875rem', padding: '3px', gap: '2px' }}>
+        <LangToggle dropdownDown triggerStyle={{ background: 'transparent', border: 'none', color: '#6a7a9a', width: 50, height: 34 }} />
+        <ThemeToggle theme={theme} onToggle={onToggleTheme} style={{ background: 'transparent', border: 'none', width: 34, height: 34, fontSize: 17 }} />
+        {!isSpectator && (
+          <button onClick={toggleFourColor} title="Four-color suits"
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 46, height: 34, padding: 0, borderRadius: '0.5rem', background: fourColor ? 'rgba(59,130,246,0.15)' : 'transparent', border: fourColor ? '1px solid rgba(59,130,246,0.35)' : 'none', cursor: 'pointer', color: fourColor ? '#3b82f6' : '#5a6a8a', fontSize: 14 }}>
+            ♦
+          </button>
+        )}
+      </div>
 
       <div
         key={deckThemeIdx}
@@ -941,16 +950,6 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: '#c9a84c' }}>
                   {tableTheme?.label}
                 </span>
-              </button>
-              <button
-                onClick={toggleFourColor}
-                title={fourColor ? 'Four-color suits: ON' : 'Four-color suits: OFF'}
-                className="hover:brightness-125 transition-all font-bold"
-                style={{ background: 'rgba(8,8,12,0.85)', border: `1px solid ${fourColor ? '#3b82f6' : '#3a1a1a'}`,
-                  color: fourColor ? '#3b82f6' : '#dc2626',
-                  borderRadius: '0.75rem', padding: '8px 12px', fontSize: 18, lineHeight: 1, cursor: 'pointer' }}
-              >
-                ♦
               </button>
               {/* Mobile-only: score panel toggle */}
               <button

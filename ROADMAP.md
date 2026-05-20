@@ -1,6 +1,6 @@
 # Joker — Development Roadmap
 
-Last updated: 2026-05-19
+Last updated: 2026-05-20
 
 ---
 
@@ -55,6 +55,17 @@ Last updated: 2026-05-19
 - Password reset via email (`/api/auth/forgot-password` + `/api/auth/reset-password`)
 - Heartbeat layer — server pings every 15 s; substitutes after 2 missed beats
 
+### v1.8 — Quick Mode, Play modal UX, UI polish
+- **Quick Mode** (G1): 2-pulka game (rounds 1–8 + four round-9s); ScoreTable shows 2 pulkas; "Quick Match with Bots" defaults to quick mode
+- **Matchmaking queues**: `join_queue` / `leave_queue` socket events; Classic, Quick, and 9s queues independent
+- **Play modal UX overhaul**: 2-liner buttons ("Auto Match / with Players", "Quick Match / with Bots"), left-aligned pills, ranked toggle right-aligned, proper padding throughout
+- **Invite Friends** panel in waiting room (S1)
+- **Honor system** — penalties skip bot-only rooms (`roomHasBots()` guard on all AFK/ragequit sites)
+- **Card size** increased ~20% (normal 96×134 px, medium 86×116 px) for readability
+- **Game UI zoom** floor raised to 0.8 — narrow windows no longer shrink cards below readable size
+- **Controls pill** (ENG / 🌙 / ♦) unified at top-left on both lobby and in-game; single pill, no duplicates
+- **LangToggle** `dropdownDown` prop — prevents dropdown opening off-screen at top edge
+
 ---
 
 ## 🚧 In Progress / To Verify
@@ -83,7 +94,7 @@ All E-series items are complete.
 
 | # | Item | Effort | Notes |
 |---|------|--------|-------|
-| S1 | Invite friend to current room directly from Friends tab | S | Emit socket event to friend's socketId |
+| ~~S1~~ | ~~Invite friend to current room~~ | — | ✅ Done in v1.8 |
 | S2 | Incognito mode — hide online status | S | Toggle on socket `authenticate`; skip `friend_online` broadcast |
 | S3 | Report player (abuse report → admin queue) | M | |
 
@@ -91,7 +102,7 @@ All E-series items are complete.
 
 | # | Item | Effort | Notes |
 |---|------|--------|-------|
-| G1 | Quick Mode — 1 pulka instead of 4 (~10 min game) | S | Same rules, shorter session; good for mobile/casual |
+| ~~G1~~ | ~~Quick Mode~~ | — | ✅ Done in v1.8 |
 | G2 | Old School mode — 38-card deck (all four 6s added back) | S | Config flag on Deck; no trump selection in 9-card rounds per their rules |
 | G3 | Lucky Mode — 1 card per player × 4 rounds (pure luck) | S | Different round structure, minimal engine change |
 | G4 | Emoji reactions mid-game | S | 6–8 reaction buttons during play (👏 😤 🤔 😂); separate from chat |

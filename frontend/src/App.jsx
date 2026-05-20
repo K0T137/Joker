@@ -739,16 +739,16 @@ export default function App() {
 
   // Hide topBar when portrait+in-game (lang/theme live inside portrait controls bar instead)
   const inGame = !!(gameState && (playerId || isSpectator))
-  const topBar = isPortraitMobile && inGame ? null : isPortraitMobile ? (
+  const topBar = inGame ? null : isPortraitMobile ? (
     /* Mobile lobby — minimal, icon-only, no background container */
-    <div className="fixed top-2 right-3 z-50" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-      <LangToggle dropdownRight triggerStyle={{ background: 'rgba(8,8,12,0.45)', border: '1px solid rgba(37,37,48,0.3)', width: 42, height: 30, color: '#6a7a9a', borderRadius: '0.5rem' }} />
+    <div className="fixed top-2 left-3 z-50" style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
+      <LangToggle triggerStyle={{ background: 'rgba(8,8,12,0.45)', border: '1px solid rgba(37,37,48,0.3)', width: 42, height: 30, color: '#6a7a9a', borderRadius: '0.5rem' }} />
       <ThemeToggle theme={theme} onToggle={() => setTheme(th => th === 'dark' ? 'light' : 'dark')} style={{ background: 'rgba(8,8,12,0.45)', border: '1px solid rgba(37,37,48,0.3)', width: 30, height: 30, fontSize: 15, borderRadius: '0.5rem' }} />
     </div>
   ) : (
-    /* Desktop — top-right, lower visual weight */
-    <div className="fixed top-3 right-4 z-50" style={{ display: 'flex', alignItems: 'center', background: 'rgba(8,8,12,0.5)', border: '1px solid rgba(37,37,48,0.4)', borderRadius: '0.875rem', padding: '3px', gap: '2px' }}>
-      <LangToggle dropdownRight triggerStyle={{ background: 'transparent', border: 'none', color: '#6a7a9a', width: 50, height: 34 }} />
+    /* Desktop — top-left, lower visual weight */
+    <div className="fixed top-3 left-4 z-50" style={{ display: 'flex', alignItems: 'center', background: 'rgba(8,8,12,0.5)', border: '1px solid rgba(37,37,48,0.4)', borderRadius: '0.875rem', padding: '3px', gap: '2px' }}>
+      <LangToggle triggerStyle={{ background: 'transparent', border: 'none', color: '#6a7a9a', width: 50, height: 34 }} />
       <ThemeToggle theme={theme} onToggle={() => setTheme(th => th === 'dark' ? 'light' : 'dark')} style={{ background: 'transparent', border: 'none', width: 34, height: 34, fontSize: 17 }} />
       <button
         onClick={toggleFourColor}
