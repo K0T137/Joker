@@ -10,7 +10,8 @@ frontend/.vite/
 .aider*
 
 # Dev tools
-.claude/
+.claude/settings.local.json
+.claude/pipeline-plan.md
 aider_bridge.py
 delegate.ps1
 competitor/
