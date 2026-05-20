@@ -17,7 +17,7 @@ import {
   MAX_PLAYERS, SUBSTITUTION_DELAY_MS, ROOM_AUTO_START_DELAY, STATE_SYNC_INTERVAL, ROOM_CLEANUP_INTERVAL,
   CHAT_RATE_LIMIT, CHAT_RATE_WINDOW_MS, CHAT_HISTORY_SIZE, CHAT_MAX_LENGTH,
   BOT_NAMES, BOT_MAX_FAILURES, BOT_DELAYS,
-  HISHT_PENALTY_DEFAULT, HISHT_PENALTY_OPTIONS_CLASSIC, HISHT_PENALTY_OPTIONS_ONLY9,
+  HISHT_PENALTY_DEFAULT, HISHT_PENALTY_OPTIONS_CLASSIC, HISHT_PENALTY_OPTIONS_ONLY9, HISHT_PENALTY_OPTIONS_QUICK,
 } from './src/config.js';
 import jwt           from 'jsonwebtoken';
 import authRouter    from './src/routes/auth.js';
@@ -108,6 +108,7 @@ const heartbeatIntervals = new Map(); // roomId    → setInterval handle (15s l
 const heartbeatMissed    = new Map(); // socketId  → consecutive missed heartbeat count
 const lobbyMessages      = [];        // last 50 lobby chat messages
 const lobbyChatRates     = new Map(); // socketId  → { count, windowStart }
+const matchmakingQueues  = new Map(); // key: '{gameMode}:{isRanked}' -> [{ socketId, playerName, userId, joinedAt }]
 
 
 // ── Password helpers ──────────────────────────────────────────────────────────
@@ -1135,8 +1136,10 @@ io.on('connection', (socket) => {
         isRanked             = false,
       } = data;
 
-      const validatedMode    = ['normal', 'only9'].includes(gameMode) ? gameMode : 'normal';
-      const validOptions     = validatedMode === 'only9' ? HISHT_PENALTY_OPTIONS_ONLY9 : HISHT_PENALTY_OPTIONS_CLASSIC;
+      const validatedMode    = ['normal', 'only9', 'quick'].includes(gameMode) ? gameMode : 'normal';
+      const validOptions     = validatedMode === 'only9' ? HISHT_PENALTY_OPTIONS_ONLY9
+                             : validatedMode === 'quick'  ? HISHT_PENALTY_OPTIONS_QUICK
+                             : HISHT_PENALTY_OPTIONS_CLASSIC;
       const validatedPenalty = validOptions.includes(hishtPenalty) ? hishtPenalty : HISHT_PENALTY_DEFAULT;
 
       const roomId   = uuidv4().substring(0, 8).toUpperCase();
@@ -1409,8 +1412,10 @@ io.on('connection', (socket) => {
         isRanked             = false,
       } = settings;
 
-      const validatedMode    = ['normal', 'only9'].includes(gameMode) ? gameMode : 'normal';
-      const validOptions     = validatedMode === 'only9' ? HISHT_PENALTY_OPTIONS_ONLY9 : HISHT_PENALTY_OPTIONS_CLASSIC;
+      const validatedMode    = ['normal', 'only9', 'quick'].includes(gameMode) ? gameMode : 'normal';
+      const validOptions     = validatedMode === 'only9' ? HISHT_PENALTY_OPTIONS_ONLY9
+                             : validatedMode === 'quick'  ? HISHT_PENALTY_OPTIONS_QUICK
+                             : HISHT_PENALTY_OPTIONS_CLASSIC;
       const validatedPenalty = validOptions.includes(hishtPenalty) ? hishtPenalty : HISHT_PENALTY_DEFAULT;
 
       const roomId   = uuidv4().substring(0, 8).toUpperCase();
@@ -1813,6 +1818,87 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('join_queue', async (data) => {
+    try {
+      const { playerName, userId = null, gameMode = 'normal', isRanked = false } = data ?? {};
+      if (!playerName?.trim()) return;
+
+      const validatedMode = ['normal', 'only9', 'quick'].includes(gameMode) ? gameMode : 'normal';
+      const key = `${validatedMode}:${!!isRanked}`;
+
+      // Remove any existing queue entry for this socket (idempotent re-queue)
+      for (const [k, q] of matchmakingQueues) {
+        const idx = q.findIndex(e => e.socketId === socket.id);
+        if (idx !== -1) {
+          q.splice(idx, 1);
+          if (q.length === 0) matchmakingQueues.delete(k);
+        }
+      }
+
+      const queue = matchmakingQueues.get(key) ?? [];
+      queue.push({ socketId: socket.id, playerName: playerName.trim(), userId, joinedAt: Date.now() });
+      matchmakingQueues.set(key, queue);
+      socket.emit('queue_position', { position: queue.length, total: queue.length });
+
+      if (queue.length >= 4) {
+        const group = queue.splice(0, 4);
+        if (queue.length === 0) matchmakingQueues.delete(key);
+
+        const roomId   = uuidv4().substring(0, 8).toUpperCase();
+        const gameRoom = new GameRoom(roomId, MAX_PLAYERS, {
+          gameMode: validatedMode, hishtPenalty: '200', isRanked: !!isRanked,
+          deductions: true, multiPremiaDeduction: false, lastBidUntouchable: true, playInPairs: false,
+        });
+        const logger = new GameLogger(roomId);
+        loggers.set(roomId, logger);
+        gameRooms.set(roomId, gameRoom);
+
+        // Attach all players in parallel
+        await Promise.all(group.map(async (entry) => {
+          const s = io.sockets.sockets.get(entry.socketId);
+          if (!s) return; // disconnected between join and match
+          const playerId = uuidv4();
+          gameRoom.addPlayer(playerId, entry.socketId, entry.playerName, entry.userId);
+          await attachAvatar(gameRoom, playerId, entry.userId);
+          playerSockets.set(playerId, { roomId, socketId: entry.socketId });
+          if (s.roomId && s.roomId !== roomId) s.leave(s.roomId);
+          s.join(roomId);
+          s.playerId = playerId;
+          s.roomId   = roomId;
+          const players = formatPlayers(gameRoom);
+          s.emit('queue_matched', {
+            success: true, roomId, playerId, players,
+            hishtPenalty: gameRoom.hishtPenalty, gameMode: gameRoom.gameMode,
+            playInPairs: false, deductions: true,
+            multiPremiaDeduction: false, lastBidUntouchable: true,
+            isRanked: !!isRanked,
+          });
+        }));
+
+        if (process.env.DATABASE_URL) {
+          createRoomRecord(roomId, gameRoom.toDBRow().settings, gameRoom.toDBRow().players)
+            .catch(e => console.error('[db] createRoomRecord (queue):', e.message));
+        }
+        logger.log('room_created_from_queue', { roomId, gameMode: validatedMode, isRanked });
+        scheduleRoomStart(roomId, gameRoom);
+      }
+    } catch (err) {
+      console.error('join_queue error:', err);
+    }
+  });
+
+  socket.on('leave_queue', () => {
+    for (const [k, q] of matchmakingQueues) {
+      const idx = q.findIndex(e => e.socketId === socket.id);
+      if (idx !== -1) {
+        q.splice(idx, 1);
+        if (q.length === 0) matchmakingQueues.delete(k);
+        socket.emit('queue_cancelled');
+        break;
+      }
+    }
+  });
+
   socket.on('disconnect', () => {
     try {
       const playerId = socket.playerId;
@@ -1821,6 +1907,16 @@ io.on('connection', (socket) => {
       chatRateLimits.delete(socket.id);
       lobbyChatRates.delete(socket.id);
       heartbeatMissed.delete(socket.id);
+
+      // Remove from matchmaking queue on disconnect (no emit — socket is gone)
+      for (const [k, q] of matchmakingQueues) {
+        const idx = q.findIndex(e => e.socketId === socket.id);
+        if (idx !== -1) {
+          q.splice(idx, 1);
+          if (q.length === 0) matchmakingQueues.delete(k);
+          break;
+        }
+      }
 
       // Remove from online tracking and notify friends
       if (socket.authUserId && onlineUsers.get(socket.authUserId) === socket.id) {

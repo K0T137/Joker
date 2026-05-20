@@ -51,6 +51,8 @@ export default function App() {
   const [gameEndStats,         setGameEndStats]         = useState(null)  // { finalScores, players, roundHistory }
   const [rematchInvite,        setRematchInvite]        = useState(null)  // { inviterName, newRoomId }
   const [roomInvite,           setRoomInvite]           = useState(null)  // { roomId, inviterName }
+  const [inQueue,    setInQueue]    = useState(false)
+  const [queueMode,  setQueueMode]  = useState('normal')
   const [resetToken,           setResetToken]           = useState(() => new URLSearchParams(window.location.search).get('reset_token'))
   const [resetPassword,        setResetPassword]        = useState('')
   const [resetError,           setResetError]           = useState('')
@@ -408,6 +410,26 @@ export default function App() {
       setRoomInvite(data)
     })
 
+    s.on('queue_matched', (data) => {
+      setInQueue(false)
+      if (!data?.success) return
+      const name = data.players?.find(p => p.id === data.playerId)?.name ?? ''
+      saveSession(data.playerId, data.roomId, name)
+      playersRef.current = data.players
+      setPlayerId(data.playerId)
+      setIsSpectator(false)
+      setGameState({
+        roomId: data.roomId, players: data.players,
+        hishtPenalty: data.hishtPenalty ?? '200', gameMode: data.gameMode ?? 'normal',
+        playInPairs: data.playInPairs ?? false, deductions: data.deductions ?? true,
+        multiPremiaDeduction: data.multiPremiaDeduction ?? false,
+        lastBidUntouchable: data.lastBidUntouchable ?? true,
+        isRanked: data.isRanked ?? false,
+      })
+      setRoundHistory([])
+    })
+    s.on('queue_cancelled', () => { setInQueue(false) })
+
     // ── Social listeners ───────────────────────────────────────────────────────
     s.on('friend_online',  ({ userId })           => setOnlineMap(m => ({ ...m, [userId]: true })))
     s.on('friend_offline', ({ userId })           => setOnlineMap(m => { const n = { ...m }; delete n[userId]; return n }))
@@ -552,11 +574,11 @@ export default function App() {
     setGameEndStats(null)
   }
 
-  const handleQuickStartWithBots = (name) => {
+  const handleQuickStartWithBots = (name, gameMode = 'normal') => {
     if (!socket) return
     socket.emit('create_game', {
       playerName: name, password: null, userId: user?.id ?? null,
-      hishtPenalty: '200', gameMode: 'normal', playInPairs: false,
+      hishtPenalty: '200', gameMode, playInPairs: false,
       deductions: true, multiPremiaDeduction: false, lastBidUntouchable: true, isRanked: false,
     }, (res) => {
       if (!res.success) { alert(res.error); return }
@@ -567,7 +589,8 @@ export default function App() {
         roomId: res.roomId, players: res.players,
         hishtPenalty: res.hishtPenalty ?? '200', gameMode: res.gameMode ?? 'normal',
         playInPairs: res.playInPairs ?? false, deductions: res.deductions ?? true,
-        multiPremiaDeduction: res.multiPremiaDeduction ?? false, lastBidUntouchable: res.lastBidUntouchable ?? true,
+        multiPremiaDeduction: res.multiPremiaDeduction ?? false,
+        lastBidUntouchable: res.lastBidUntouchable ?? true,
         isRanked: false,
       })
       setRoundHistory([])
@@ -576,6 +599,18 @@ export default function App() {
       socket.emit('add_bot', {})
       socket.emit('ready_to_play', {})
     })
+  }
+
+  const handleJoinQueue = (name, gameMode, isRanked) => {
+    if (!socket) return
+    setInQueue(true)
+    setQueueMode(gameMode)
+    socket.emit('join_queue', { playerName: name, userId: user?.id ?? null, gameMode, isRanked })
+  }
+
+  const handleLeaveQueue = () => {
+    socket?.emit('leave_queue')
+    setInQueue(false)
   }
 
   const handleSpectateGame = (roomId, onError) => {
@@ -746,6 +781,10 @@ export default function App() {
           onJoinGame={handleJoinGame}
           onSpectateGame={handleSpectateGame}
           onQuickStartWithBots={handleQuickStartWithBots}
+          inQueue={inQueue}
+          queueMode={queueMode}
+          onJoinQueue={handleJoinQueue}
+          onLeaveQueue={handleLeaveQueue}
           inviteRoomCode={inviteRoomCode}
           theme={theme}
           onOpenCabinet={() => setCabinetOpen(true)}

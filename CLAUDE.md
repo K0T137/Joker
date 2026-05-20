@@ -32,7 +32,8 @@ backend/
   test/
     iter1_engine.test.js     # Card/Deck/TrickResolver/Scorer unit tests (33 tests)
     iter2_state.test.js      # GameState/BotPlayer + phase guards + action log (46 tests)
-    iter3_integration.test.js# Full room integration — 4-bot game, hisht modes (17 tests)
+    iter3_integration.test.js# Full room integration — 4-bot game, hisht modes, quick mode (21 tests)
+    iter4_queue.test.js      # Matchmaking queue unit tests (7 tests)
 frontend/
   src/
     components/              # React components (GameBoard, BiddingPhase, etc.)
@@ -171,7 +172,8 @@ Environment variables are set in the Railway dashboard. `DATABASE_URL` is inject
 - 5 table themes, multiple card decks
 - Tutorial modal (7 slides)
 - Joker card visuals: joker.JPG as card face; gold/purple tint for JOKER_1/JOKER_2
-- Room badges in lobby: game mode, ranked, pairs
+- Room badges in lobby: game mode (Classic / Quick / 9s), ranked, pairs
+- Quick mode: 2-pulka shortened game (rounds 1-8 + four round-9s); matchmaking queues (`join_queue`/`leave_queue` socket events) support Classic, Quick, and 9s modes independently
 - SEO: sitemap.xml, robots.txt, og-image.png, canonical, Open Graph, Twitter Card, Google Search Console
 - Google OAuth + JWT auth
 - Admin panel
@@ -181,7 +183,7 @@ Environment variables are set in the Railway dashboard. `DATABASE_URL` is inject
 - Ghost waiting rooms: on server restart, waiting rooms are skipped (not restored) and marked abandoned in DB
 - index.html served with `no-cache, no-store, must-revalidate` so Railway deploys take effect immediately
 - Hashed assets (JS/CSS) served with `immutable, max-age=1y`
-- 98 unit tests in backend/test/ — run `npm test` before pushing
+- 123 unit tests in backend/test/ — run `npm test` before pushing
 
 ---
 
@@ -197,6 +199,6 @@ Other projects in `Piton/` (Balatro/, IG/, etc.) are separate and unrelated.
 - Terse responses — no trailing summaries, no restating what was just done
 - Don't bump version numbers unless explicitly asked
 - Always run tests before committing game-logic changes
-- Commits should be descriptive but concise; co-author line: `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
+- Commits should be descriptive but concise;
 - Don't add comments to code unless the WHY is genuinely non-obvious
 - Georgian is the user's native language; game text should support KA/EN/RU

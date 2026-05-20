@@ -15,8 +15,15 @@ const t = {
 
   // ── Lobby ───────────────────────────────────────────────────────────────────
   name_ph:         { en: 'Your name',         ka: 'შენი სახელი',     ru: 'Ваше имя'          },
-  quick_match_bots:{ en: 'Quick Match with Bots', ka: 'ბოტებთან სწრაფი', ru: 'Быстрая игра с ботами' },
-  quick_match:     { en: 'Auto Match',        ka: 'ავტო მატჩი',      ru: 'Авто матч'         },
+  quick_match_bots:     { en: 'Quick Match',         ka: 'სწრაფი მატჩი',      ru: 'Быстрая игра'      },
+  quick_match_bots_sub: { en: 'with Bots',           ka: 'ბოტებთან',          ru: 'с ботами'          },
+  quick_match:          { en: 'Auto Match',           ka: 'ავტო მატჩი',        ru: 'Авто матч'         },
+  quick_match_sub:      { en: 'with Players',         ka: 'მოთამაშეებთან',     ru: 'с игроками'        },
+  mode_quick:       { en: 'Quick',            ka: 'სწრაფი',           ru: 'Быстрый'           },
+  auto_match_btn:   { en: 'Find Match',       ka: 'მატჩის ძებნა',    ru: 'Найти матч'        },
+  play_vs_bots_btn: { en: 'Play',             ka: 'თამაში',           ru: 'Играть'            },
+  finding_match:    { en: 'Finding match…',   ka: 'მატჩი ეძებება…',  ru: 'Поиск матча…'      },
+  cancel_search:    { en: 'Cancel',           ka: 'გაუქმება',         ru: 'Отмена'            },
   create_room:     { en: 'Create Room',       ka: 'ოთახის შექმნა',   ru: 'Создать комнату'   },
   code_btn:        { en: 'Join by Code',      ka: 'კოდით შეერთება',  ru: 'Войти по коду'     },
   new_room:        { en: 'New Room',          ka: 'ახალი ოთახი',     ru: 'Новая комната'     },

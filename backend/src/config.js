@@ -40,6 +40,7 @@ export const SCORE = {
 export const HISHT_PENALTY_DEFAULT       = '200';
 export const HISHT_PENALTY_OPTIONS_CLASSIC = ['200', '500', '200/500', '×100'];
 export const HISHT_PENALTY_OPTIONS_ONLY9   = ['200', '300', '500', '900'];
+export const HISHT_PENALTY_OPTIONS_QUICK   = ['200', '500', '200/500', 'x100'];
 
 // ── Round / pulka structure ───────────────────────────────────────────────────
 export const PULKA_STRUCTURES = {
@@ -54,6 +55,10 @@ export const PULKA_STRUCTURES = {
     2: [9, 9, 9, 9],
     3: [9, 9, 9, 9],
     4: [9, 9, 9, 9],
+  },
+  quick: {
+    1: [1, 2, 3, 4, 5, 6, 7, 8],
+    2: [9, 9, 9, 9],
   },
 };
 export const NINE_CARD_PHASE1_DEAL  = 3;  // cards dealt before trump selection

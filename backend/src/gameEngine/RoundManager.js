@@ -7,7 +7,9 @@ export class RoundManager {
   }
 
   getPulkaStructure(pulkaNumber) {
-    const mode   = this.gs.gameMode === 'only9' ? 'only9' : 'normal';
+    const mode   = this.gs.gameMode === 'only9' ? 'only9'
+               : this.gs.gameMode === 'quick'  ? 'quick'
+               : 'normal';
     const struct = PULKA_STRUCTURES[mode][pulkaNumber];
     if (!struct) throw new Error(`Invalid pulka number: ${pulkaNumber}`);
     return struct;

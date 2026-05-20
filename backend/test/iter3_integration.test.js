@@ -276,3 +276,68 @@ describe('Bot card play validity', () => {
     assert.equal(trickPlayers.size, 4, 'All 4 different players should play in a trick');
   });
 });
+
+function makeQuickRoom() {
+  const room = new GameRoom('qtest', 4, { gameMode: 'quick' });
+  room.addBot('p1', 'Bot1');
+  room.addBot('p2', 'Bot2');
+  room.addBot('p3', 'Bot3');
+  room.addBot('p4', 'Bot4');
+  return room;
+}
+
+describe('quick mode', () => {
+  test('quick mode pulka 1 has 8 rounds ascending from 1 to 8', () => {
+    const room = makeQuickRoom();
+    room.startGame();
+    const gs = room.gameState;
+    const p1 = gs.getPulkaStructure(1);
+    assert.equal(p1.length, 8);
+    assert.equal(p1[0], 1);
+    assert.equal(p1[7], 8);
+  });
+
+  test('quick mode pulka 2 has 4 rounds all 9 cards', () => {
+    const room = makeQuickRoom();
+    room.startGame();
+    const gs = room.gameState;
+    const p2 = gs.getPulkaStructure(2);
+    assert.equal(p2.length, 4);
+    assert.ok(p2.every(v => v === 9));
+  });
+
+  test('quick mode pulka 3 throws Invalid pulka number', () => {
+    const room = makeQuickRoom();
+    room.startGame();
+    const gs = room.gameState;
+    assert.throws(() => gs.getPulkaStructure(3), /Invalid pulka number/);
+  });
+
+  test('quick mode game ends after pulka 2', () => {
+    const room = makeQuickRoom();
+    room.startGame();
+
+    const result1 = playPulka(room);
+    assert.ok(result1?.pulkaComplete, 'Pulka 1 should end with pulkaComplete');
+
+    const result2 = playPulka(room);
+    assert.ok(result2?.gameComplete, 'Pulka 2 should end with gameComplete');
+    assert.equal(room.status, 'finished');
+
+    const totalRounds = room.pulkaHistory.reduce((s, p) => s + Object.keys(p.scores).length > 0 ? 1 : 0, 0);
+    assert.equal(room.pulkaHistory.length, 2);
+  });
+
+  test('normal mode still completes after 4 pulkas (regression)', () => {
+    const room = makeRoom('fixed');
+    room.startGame();
+
+    for (let p = 0; p < 3; p++) {
+      const result = playPulka(room);
+      assert.ok(result?.pulkaComplete);
+    }
+    const finalResult = playPulka(room);
+    assert.ok(finalResult?.gameComplete);
+    assert.equal(room.pulkaHistory.length, 4);
+  });
+});

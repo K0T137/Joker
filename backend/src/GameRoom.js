@@ -310,7 +310,8 @@ export class GameRoom {
       gameScores:  { ...this.gameState.gameScores },
     });
 
-    if (this.gameState.pulkaNumber >= 4) {
+    const maxPulkas = this.gameMode === 'quick' ? 2 : 4;
+    if (this.gameState.pulkaNumber >= maxPulkas) {
       this.status = 'finished';
       return { gameComplete: true, finalScores: this.buildFinalScores() };
     }

@@ -151,7 +151,13 @@ function RoomRow({ room, onJoin, onSpectate }) {
           background: isPlaying ? 'rgba(201,168,76,0.12)' : 'rgba(59,130,246,0.1)',
           color: isPlaying ? '#c9a84c' : '#6b8fc9',
         }}>{isPlaying ? t('status_playing') : t('status_waiting')}</span>
-        {room.gameMode === '9' && (
+        {room.gameMode === 'quick' && (
+          <span className="text-[10px] px-2 py-0.5 rounded-full"
+            style={{ background: 'rgba(201,168,76,0.12)', color: '#c9a84c' }}>
+            {t('mode_quick')}
+          </span>
+        )}
+        {room.gameMode === 'only9' && (
           <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(120,80,200,0.15)', color: '#a070e0' }}>
             {t('mode_only9')}
           </span>
@@ -401,7 +407,7 @@ function LobbyChatPanel({ socket, messages, open, setOpen, onOpenCardPreview = n
 }
 
 // ── Main Lobby ────────────────────────────────────────────────────────────────
-export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuickStartWithBots, inviteRoomCode = null, onOpenCabinet = null, onlineMap = {}, socket = null, lobbyMessages = [], lobbyChatOpen = false, setLobbyChatOpen = null, onOpenCardPreview = null, theme: themeProp = null }) {
+export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuickStartWithBots, inQueue = false, queueMode = 'normal', onJoinQueue, onLeaveQueue, inviteRoomCode = null, onOpenCabinet = null, onlineMap = {}, socket = null, lobbyMessages = [], lobbyChatOpen = false, setLobbyChatOpen = null, onOpenCardPreview = null, theme: themeProp = null }) {
   const t = useT()
   const { lang } = useLang()
   const { user, setUser, updateUser, logout, API_URL } = useAuth()
@@ -430,6 +436,13 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
   const [lastBidUntouchable,   setLastBidUntouchable]   = useState(true)
   const [isRanked,             setIsRanked]             = useState(false)
   const [error,                setError]                = useState('')
+
+  // ── instant play card state ──
+  const [autoMatchOpen,   setAutoMatchOpen]   = useState(false)
+  const [botsOpen,        setBotsOpen]        = useState(false)
+  const [autoMatchMode,   setAutoMatchMode]   = useState('normal')
+  const [autoMatchRanked, setAutoMatchRanked] = useState(false)
+  const [botsMode,        setBotsMode]        = useState('normal')
 
   // ── leaderboard state ──
   const [leaderboard, setLeaderboard] = useState([])
@@ -590,17 +603,9 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
     onSpectateGame(roomId, (err) => setError(err ?? 'Could not watch that game'))
   }
 
-  const handleQuickMatch = () => {
+  const handleQueueJoin = () => {
     if (!guard()) return
-    const open = rooms.filter(r => r.status === 'waiting' && !r.hasPassword && r.playerCount < r.maxPlayers)
-    if (!open.length) { setError(t('no_open_rooms')); return }
-    onJoinGame(open[0].id, name.trim(), null)
-  }
-
-  const handleQuickStartWithBots = () => {
-    if (!guard() || joining) return
-    setJoining(true)
-    onQuickStartWithBots(name.trim())
+    onJoinQueue(name.trim(), autoMatchMode, autoMatchRanked)
   }
 
   const closeModal = () => { setModal(null); setError(''); setPlayPanel(null) }
@@ -803,20 +808,75 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
             )}
 
             {/* ── Instant Play group ── */}
-            <div className="flex flex-col gap-2">
-              <span className="text-[10px] uppercase tracking-widest font-bold px-1" style={{ color: '#4a5570' }}>⚡ {t('section_instant')}</span>
+            <div className="flex flex-col gap-0">
+              <span className="text-[10px] uppercase tracking-widest font-bold px-1 mb-2" style={{ color: '#4a5570' }}>⚡ {t('section_instant')}</span>
+
+              {/* Side-by-side buttons */}
               <div className="flex gap-2">
-                <button onClick={handleQuickMatch} disabled={joining}
-                  className="flex-1 rounded-2xl font-bold text-base tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ height: 72, background: 'linear-gradient(135deg, #c9a84c 0%, #e2c96a 100%)', color: '#07090e', boxShadow: '0 4px 20px rgba(201,168,76,0.3)' }}>
-                  ⚡ {joining ? '…' : t('quick_match')}
+                <button onClick={() => { setAutoMatchOpen(o => !o); setBotsOpen(false) }}
+                  className="flex-1 flex flex-col items-center justify-center px-2 font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98] rounded-xl"
+                  style={{ height: 62, background: 'linear-gradient(135deg, #c9a84c 0%, #a8893d 100%)', color: '#07090e', border: `2px solid ${autoMatchOpen ? '#f0dc8a' : 'transparent'}`, opacity: botsOpen ? 0.5 : 1 }}>
+                  <span>⚡ {t('quick_match')} {autoMatchOpen ? '▲' : '▼'}</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, opacity: 0.7 }}>{t('quick_match_sub')}</span>
                 </button>
-                <button onClick={handleQuickStartWithBots} disabled={joining}
-                  className="flex-1 rounded-2xl font-bold text-base tracking-wide transition-all hover:brightness-110 active:scale-[0.98] flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ height: 72, background: 'linear-gradient(135deg, #2a6a3c 0%, #3abe6e 100%)', color: '#e8f5ec', boxShadow: '0 4px 20px rgba(58,190,110,0.2)' }}>
-                  🤖 {t('quick_match_bots')}
+                <button onClick={() => { setBotsOpen(o => !o); setAutoMatchOpen(false) }}
+                  className="flex-1 flex flex-col items-center justify-center px-2 font-bold text-sm transition-all hover:brightness-110 active:scale-[0.98] rounded-xl"
+                  style={{ height: 62, background: 'linear-gradient(135deg, #2a7a48 0%, #3abe6e 100%)', color: '#e8f5ec', border: `2px solid ${botsOpen ? '#8ef7b8' : 'transparent'}`, opacity: autoMatchOpen ? 0.5 : 1 }}>
+                  <span>🤖 {t('quick_match_bots')} {botsOpen ? '▲' : '▼'}</span>
+                  <span style={{ fontSize: 11, fontWeight: 500, opacity: 0.7 }}>{t('quick_match_bots_sub')}</span>
                 </button>
               </div>
+
+              {/* Full-width expanded panel */}
+              {(autoMatchOpen || botsOpen) && (
+                <div className="flex flex-col gap-4 rounded-xl mt-2"
+                  style={{ background: '#0f1520', border: `1.5px solid ${autoMatchOpen ? '#c9a84c' : '#3abe6e'}`, padding: '20px 18px 18px 18px' }}>
+                  {/* Mode pills + ranked toggle in one row */}
+                  <div className="flex items-center gap-2">
+                    {[{ id: 'normal', label: t('mode_classic') }, { id: 'quick', label: t('mode_quick') }, { id: 'only9', label: t('mode_only9') }].map(m => (
+                      <OptionBtn key={m.id}
+                        active={autoMatchOpen ? autoMatchMode === m.id : botsMode === m.id}
+                        onClick={() => autoMatchOpen ? setAutoMatchMode(m.id) : setBotsMode(m.id)}>
+                        {m.label}
+                      </OptionBtn>
+                    ))}
+                    {autoMatchOpen && (
+                      <div className="flex items-center gap-1.5 ml-auto flex-shrink-0">
+                        <span className="text-xs" style={{ color: '#6a7a9a' }}>{t('ranked_badge')}</span>
+                        <Toggle value={autoMatchRanked} onChange={() => setAutoMatchRanked(v => !v)} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Action button */}
+                  {autoMatchOpen && (
+                    inQueue && queueMode === autoMatchMode ? (
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs animate-pulse" style={{ color: '#c9a84c' }}>{t('finding_match')}</span>
+                        <button onClick={onLeaveQueue}
+                          className="ml-auto rounded-lg text-xs font-bold px-3 py-1.5 transition-all hover:brightness-110"
+                          style={{ background: 'rgba(255,80,80,0.12)', color: '#f07070', border: '1px solid rgba(255,80,80,0.2)' }}>
+                          {t('cancel_search')}
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={handleQueueJoin} disabled={!!inQueue}
+                        className="rounded-xl font-bold text-sm py-2.5 transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                        style={{ background: 'linear-gradient(135deg, #c9a84c 0%, #e2c96a 100%)', color: '#07090e' }}>
+                        {t('auto_match_btn')}
+                      </button>
+                    )
+                  )}
+                  {botsOpen && (
+                    <button onClick={() => { if (!guard() || joining) return; setJoining(true); onQuickStartWithBots(name.trim(), botsMode) }}
+                      disabled={joining}
+                      className="rounded-xl font-bold text-sm py-2.5 transition-all hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+                      style={{ background: 'linear-gradient(135deg, #2a6a3c 0%, #3abe6e 100%)', color: '#e8f5ec' }}>
+                      {joining ? '…' : t('play_vs_bots_btn')}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* ── divider ── */}
