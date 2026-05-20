@@ -140,3 +140,62 @@ Health check: `GET /health`
 Restart policy: on failure
 
 Environment variables are set in the Railway dashboard. `DATABASE_URL` is injected automatically by the Railway PostgreSQL service.
+
+---
+
+## Game Rules (read before touching game logic)
+
+- 36-card deck: 6 through Ace in 4 suits, plus 2 Jokers (JOKER_1, JOKER_2)
+- 4 players, 24 rounds grouped into 4 pulkas (8+4+8+4 rounds each)
+- Each round: deal → bid → play tricks → score
+- Joker has 4 special modes: TAKE (take all tricks), GIVE (give away tricks), HIGH (highest card), LOW (lowest card)
+- Scoring: bid accuracy matters; pulka bonus (premia) awarded at end of each pulka; deductions are configurable
+- Trump suit changes each round; bidding sets contract for the round
+
+---
+
+## Project Status (as of 2026-05-20, v1.7)
+
+**Live at:** https://jokr.online  
+**Railway service:** joker-production-9ce4.up.railway.app  
+**GitHub:** https://github.com/K0T137/Joker (branch: main)
+
+### What's fully built
+- Complete game engine with bot opponents (BotPlayer.js)
+- Lobby: Quick Match, Create Room (password-protected), Open Rooms list, invite links
+- Player profiles, leaderboard, game history
+- Spectator mode, reconnection with bot substitution (2-min timeout)
+- Heartbeat layer: server pings every 15s, client echoes ack; missed beats push state_sync only (no substitution)
+- Chat (rate-limited), sound effects
+- i18n: EN / KA (Georgian) / RU
+- 5 table themes, multiple card decks
+- Tutorial modal (7 slides)
+- Joker card visuals: joker.JPG as card face; gold/purple tint for JOKER_1/JOKER_2
+- Room badges in lobby: game mode, ranked, pairs
+- SEO: sitemap.xml, robots.txt, og-image.png, canonical, Open Graph, Twitter Card, Google Search Console
+- Google OAuth + JWT auth
+- Admin panel
+
+### Known working decisions
+- Ghost waiting rooms: on server restart, waiting rooms are skipped (not restored) and marked abandoned in DB
+- index.html served with `no-cache, no-store, must-revalidate` so Railway deploys take effect immediately
+- Hashed assets (JS/CSS) served with `immutable, max-age=1y`
+- 96 unit tests in backend/test/ — run `npm test` before pushing
+
+---
+
+## Workspace Layout
+
+This repo lives at `c:\Users\kotar\Piton\Joker\` — its own independent git repo.  
+Other projects in `Piton/` (Balatro/, IG/, etc.) are separate and unrelated.
+
+---
+
+## User Preferences
+
+- Terse responses — no trailing summaries, no restating what was just done
+- Don't bump version numbers unless explicitly asked
+- Always run tests before committing game-logic changes
+- Commits should be descriptive but concise; co-author line: `Co-Authored-By: Claude Sonnet 4.6 <noreply@anthropic.com>`
+- Don't add comments to code unless the WHY is genuinely non-obvious
+- Georgian is the user's native language; game text should support KA/EN/RU
