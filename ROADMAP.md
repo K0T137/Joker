@@ -59,7 +59,7 @@ Last updated: 2026-05-19
 
 ## 🚧 In Progress / To Verify
 
-- [ ] **Google OAuth live testing** — backend complete; needs Railway deploy with correct redirect URIs in Google Cloud Console
+- [x] **Google OAuth live testing** — working locally and on Railway; redirect URIs configured in Google Cloud Console; email-conflict upsert fixed
 - [ ] **Spectator reconnect edge case** — late spectators joining mid-trick may miss a card_played event; state_sync covers it in practice but needs explicit live testing
 
 ---

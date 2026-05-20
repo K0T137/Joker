@@ -27,7 +27,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     {
       clientID:     process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-      callbackURL:  '/api/auth/google/callback',
+      callbackURL:  process.env.GOOGLE_CALLBACK_URL || '/api/auth/google/callback',
       proxy:        true,
     },
     async (_access, _refresh, profile, done) => {
@@ -36,13 +36,23 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
         const email    = profile.emails?.[0]?.value ?? null
         const username = profile.displayName ?? `Player${googleId.slice(-5)}`
 
-        const { rows } = await pool.query(
-          `INSERT INTO users (google_id, email, username)
-           VALUES ($1, $2, $3)
-           ON CONFLICT (google_id) DO UPDATE SET email = EXCLUDED.email
-           RETURNING *`,
-          [googleId, email, username]
+        let { rows } = await pool.query(
+          `SELECT * FROM users WHERE google_id = $1`, [googleId]
         )
+        if (!rows[0] && email) {
+          const linked = await pool.query(
+            `UPDATE users SET google_id = $1 WHERE email = $2 AND google_id IS NULL RETURNING *`,
+            [googleId, email]
+          )
+          rows = linked.rows
+        }
+        if (!rows[0]) {
+          const inserted = await pool.query(
+            `INSERT INTO users (google_id, email, username) VALUES ($1, $2, $3) RETURNING *`,
+            [googleId, email, username]
+          )
+          rows = inserted.rows
+        }
 
         await pool.query(
           `INSERT INTO player_stats (user_id) VALUES ($1) ON CONFLICT DO NOTHING`,
