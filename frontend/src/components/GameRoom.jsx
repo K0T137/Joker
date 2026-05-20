@@ -19,7 +19,7 @@ import GameAnnouncementOverlay from './overlays/GameAnnouncementOverlay'
 import RoundEndOverlay from './overlays/RoundEndOverlay'
 import GameEndModal from './overlays/GameEndModal'
 
-export default function GameRoom({ socket, gameState, playerId, isSpectator = false, onLeaveGame, onPlayAgain = null, onRematch = null, onSpectateGame, roundHistory = [], lastTrick = null, atuzovka = null, trickWinnerId = null, isCollecting = false, dealerPlayerId = null, initialDealerPlayerId = null, gameAnnouncement = null, jokerAnnouncement = null, firstPlayerId = null, gameLog = [], chatMessages = [], onSendChat = null, isMuted = false, onToggleMute = null, theme = 'dark', onToggleTheme = null, gameEndStats = null, myPlayerId = null, hishtPenalty = '200', gameMode = 'normal', playInPairs = false, isRanked = false, onKickPlayer = null, autoStartAt = null, turnTimer = null, countdown = null, onOpenCabinet = null, onOpenCardPreview = null, roundEndData = null }) {
+export default function GameRoom({ socket, gameState, playerId, isSpectator = false, onLeaveGame, onPlayAgain = null, onRematch = null, onSpectateGame, roundHistory = [], lastTrick = null, atuzovka = null, trickWinnerId = null, isCollecting = false, dealerPlayerId = null, initialDealerPlayerId = null, gameAnnouncement = null, jokerAnnouncement = null, firstPlayerId = null, gameLog = [], chatMessages = [], onSendChat = null, isMuted = false, onToggleMute = null, theme = 'dark', onToggleTheme = null, gameEndStats = null, myPlayerId = null, hishtPenalty = '200', gameMode = 'normal', playInPairs = false, isRanked = false, onKickPlayer = null, autoStartAt = null, turnTimer = null, countdown = null, onOpenCabinet = null, onOpenCardPreview = null, roundEndData = null, onlineMap = {} }) {
   const t = useT()
   const { API_URL, user } = useAuth()
   const { suitHex, fourColor, toggleFourColor, deckTheme, deckThemeIdx, cycleDeckTheme, tableTheme, cycleTableTheme } = usePrefs()
@@ -41,6 +41,9 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
   const [compact, setCompact] = useState(() => window.innerWidth < 640)
   const [botErrorMsg, setBotErrorMsg] = useState(null)
   const [leaveConfirm, setLeaveConfirm] = useState(false)
+  const [showInvitePanel, setShowInvitePanel] = useState(false)
+  const [inviteFriends, setInviteFriends] = useState([])
+  const [inviteSent, setInviteSent] = useState({})
 
   useEffect(() => {
     const handler = () => {
@@ -143,6 +146,23 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
 
   const setReady = () => socket?.emit('ready_to_play', { roomId: gameState.roomId, playerId })
   const addBot   = () => socket?.emit('add_bot', {}, (res) => { if (!res?.success) alert(res?.error) })
+
+  const openInvitePanel = async () => {
+    setShowInvitePanel(p => !p)
+    if (inviteFriends.length > 0) return
+    try {
+      const token = localStorage.getItem('token')
+      const res = await fetch(`${API_URL}/api/friends`, { headers: { Authorization: `Bearer ${token}` } })
+      const data = await res.json()
+      setInviteFriends(Array.isArray(data) ? data.filter(f => f.status === 'accepted') : [])
+    } catch {}
+  }
+
+  const sendFriendInvite = (friendId) => {
+    socket?.emit('send_room_invite', { targetUserId: friendId, roomId: gameState?.roomId })
+    setInviteSent(prev => ({ ...prev, [friendId]: true }))
+    setTimeout(() => setInviteSent(prev => ({ ...prev, [friendId]: false })), 5000)
+  }
 
   // ── Guards ───────────────────────────────────────────────────────────────────
 
@@ -353,6 +373,43 @@ export default function GameRoom({ socket, gameState, playerId, isSpectator = fa
               >
                 {iAmReady ? t('ready_check') : t('ready_btn')}
               </button>
+            </div>
+          )}
+
+          {/* ── Invite Friends ── */}
+          {!isSpectator && user && (
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={openInvitePanel}
+                className="w-full py-2.5 rounded-2xl font-semibold text-sm transition-all hover:brightness-110 active:scale-[0.98]"
+                style={{ background: '#13131a', color: showInvitePanel ? '#c9a84c' : '#6b6b80', border: `1px solid ${showInvitePanel ? 'rgba(201,168,76,0.4)' : '#1e1e2a'}` }}
+              >
+                👥 {t('invite_friends_btn')}
+              </button>
+              {showInvitePanel && (
+                <div className="flex flex-col gap-1.5 rounded-2xl p-3" style={{ background: '#0f0f14', border: '1px solid #1e1e2a' }}>
+                  {inviteFriends.filter(f => onlineMap[f.friend_id]).length === 0 ? (
+                    <p className="text-center text-xs py-2" style={{ color: '#3e3e50' }}>{t('no_friends_online')}</p>
+                  ) : (
+                    inviteFriends.filter(f => onlineMap[f.friend_id]).map(f => (
+                      <div key={f.friend_id} className="flex items-center justify-between px-2 py-1.5 rounded-xl" style={{ background: '#13131a' }}>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: '#4ade80' }} />
+                          <span className="text-sm font-medium truncate" style={{ color: '#e8d5a3', maxWidth: 140 }}>{f.username}</span>
+                        </div>
+                        <button
+                          onClick={() => sendFriendInvite(f.friend_id)}
+                          disabled={inviteSent[f.friend_id]}
+                          className="text-xs px-3 py-1 rounded-lg font-semibold transition-all hover:brightness-110 active:scale-95 disabled:opacity-60"
+                          style={{ background: inviteSent[f.friend_id] ? '#1a2a1a' : 'rgba(201,168,76,0.15)', color: inviteSent[f.friend_id] ? '#4ade80' : '#c9a84c', border: `1px solid ${inviteSent[f.friend_id] ? 'rgba(74,222,128,0.3)' : 'rgba(201,168,76,0.3)'}` }}
+                        >
+                          {inviteSent[f.friend_id] ? '✓ ' + t('room_invite_accept') : t('room_invite_btn')}
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
             </div>
           )}
 

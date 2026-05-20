@@ -3,6 +3,7 @@ import { io } from 'socket.io-client'
 import GameRoom from './components/GameRoom'
 import Lobby from './components/Lobby'
 import RematchToast from './components/overlays/RematchToast'
+import RoomInviteToast from './components/overlays/RoomInviteToast'
 import DailyBonusModal from './components/overlays/DailyBonusModal'
 import Cabinet from './components/Cabinet'
 import CardPreview from './components/CardPreview'
@@ -49,6 +50,7 @@ export default function App() {
   const [isMuted,              setIsMuted]              = useState(() => localStorage.getItem('joker_muted') === '1')
   const [gameEndStats,         setGameEndStats]         = useState(null)  // { finalScores, players, roundHistory }
   const [rematchInvite,        setRematchInvite]        = useState(null)  // { inviterName, newRoomId }
+  const [roomInvite,           setRoomInvite]           = useState(null)  // { roomId, inviterName }
   const [resetToken,           setResetToken]           = useState(() => new URLSearchParams(window.location.search).get('reset_token'))
   const [resetPassword,        setResetPassword]        = useState('')
   const [resetError,           setResetError]           = useState('')
@@ -400,6 +402,10 @@ export default function App() {
 
     s.on('rematch_invite', (data) => {
       setRematchInvite(data)
+    })
+
+    s.on('room_invite', (data) => {
+      setRoomInvite(data)
     })
 
     // ── Social listeners ───────────────────────────────────────────────────────
@@ -804,7 +810,7 @@ export default function App() {
       )}
       {topBar}
 
-      {cabinetOpen && <Cabinet onClose={() => setCabinetOpen(false)} onlineMap={onlineMap} />}
+      {cabinetOpen && <Cabinet onClose={() => setCabinetOpen(false)} onlineMap={onlineMap} currentRoomId={gameState?.roomId ?? null} socket={socket} />}
       {devPreviewOpen && <CardPreview onClose={() => setDevPreviewOpen(false)} />}
       <GameRoom
         socket={socket}
@@ -845,6 +851,7 @@ export default function App() {
         onOpenCabinet={() => setCabinetOpen(true)}
         onOpenCardPreview={() => setDevPreviewOpen(true)}
         roundEndData={roundEndData}
+        onlineMap={onlineMap}
       />
 
       {countdown !== null && turnTimer && (
@@ -899,6 +906,20 @@ export default function App() {
           invite={rematchInvite}
           onAccept={() => handleAcceptRematch(rematchInvite.newRoomId)}
           onDismiss={() => setRematchInvite(null)}
+        />
+      )}
+
+      {roomInvite && (
+        <RoomInviteToast
+          invite={roomInvite}
+          onAccept={() => {
+            const myName = playersRef.current.find(p => p.id === playerId)?.name
+              || user?.username
+              || 'Player'
+            setRoomInvite(null)
+            handleJoinGame(roomInvite.roomId, myName, null)
+          }}
+          onDismiss={() => setRoomInvite(null)}
         />
       )}
     </>
