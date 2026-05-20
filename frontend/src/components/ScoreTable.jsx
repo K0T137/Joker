@@ -1,4 +1,6 @@
 import React from 'react'
+import { useCrown } from '../context/AuthContext'
+import CrownBadge from './CrownBadge'
 
 const BG1   = 'var(--table-row-1)'
 const BG2   = 'var(--table-row-2)'
@@ -59,6 +61,8 @@ export default function ScoreTable({
   gameMode = 'normal',
   trickWinnerId = null,
 }) {
+  const crownUserId = useCrown()
+
   if (!players.length) return null
 
   // Column order anchored to initial dealer
@@ -127,7 +131,7 @@ export default function ScoreTable({
                   background:  isMe ? 'rgba(201,168,76,0.08)' : BGHDR,
                   color:       isMe ? '#c9a84c' : CHDR,
                 }}>
-                {p.isBot ? '🤖' : ''}{abbr(p.name)}
+                {p.isBot ? '🤖' : ''}<CrownBadge show={!p.isBot && p.userId === crownUserId} />{abbr(p.name)}
               </th>
             )
           })}

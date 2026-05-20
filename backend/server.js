@@ -27,6 +27,7 @@ import {
   runMigrations,
   saveGameResult,
   getLeaderboard,
+  getKing,
   getPlayerStats,
   getPlayerGameLog,
   incrementAfkCount,
@@ -135,6 +136,17 @@ app.get('/api/leaderboard', async (req, res) => {
   } catch (err) {
     console.error('leaderboard error:', err.message);
     res.json([]);
+  }
+});
+
+app.get('/api/leaderboard/king', async (req, res) => {
+  if (!process.env.DATABASE_URL) return res.json({});
+  try {
+    const king = await getKing();
+    res.json(king ? { userId: king.id, username: king.username } : {});
+  } catch (err) {
+    console.error('king error:', err.message);
+    res.json({});
   }
 });
 

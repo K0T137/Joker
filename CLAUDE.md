@@ -175,12 +175,13 @@ Environment variables are set in the Railway dashboard. `DATABASE_URL` is inject
 - SEO: sitemap.xml, robots.txt, og-image.png, canonical, Open Graph, Twitter Card, Google Search Console
 - Google OAuth + JWT auth
 - Admin panel
+- Joker crown title: `GET /api/leaderboard/king` returns the top-ranked player; `CrownBadge.jsx` + `useCrown()` hook display the crown in lobby leaderboard, chat, profile hero, and ScoreTable header
 
 ### Known working decisions
 - Ghost waiting rooms: on server restart, waiting rooms are skipped (not restored) and marked abandoned in DB
 - index.html served with `no-cache, no-store, must-revalidate` so Railway deploys take effect immediately
 - Hashed assets (JS/CSS) served with `immutable, max-age=1y`
-- 96 unit tests in backend/test/ — run `npm test` before pushing
+- 98 unit tests in backend/test/ — run `npm test` before pushing
 
 ---
 

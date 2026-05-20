@@ -7,6 +7,14 @@ const API_URL = ''
 export function AuthProvider({ children }) {
   // undefined = loading, null = not logged in, object = logged in
   const [user, setUser] = useState(undefined)
+  const [crownUserId, setCrownUserId] = useState(null)
+
+  useEffect(() => {
+    fetch('/api/leaderboard/king')
+      .then(r => r.ok ? r.json() : {})
+      .then(data => setCrownUserId(data.userId ?? null))
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     // Pick up token dropped in URL after Google OAuth redirect
@@ -43,10 +51,11 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, setUser, updateUser, logout, API_URL }}>
+    <AuthContext.Provider value={{ user, setUser, updateUser, logout, API_URL, crownUserId }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
 export const useAuth = () => useContext(AuthContext)
+export const useCrown = () => useContext(AuthContext).crownUserId

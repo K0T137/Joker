@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { useAuth } from '../context/AuthContext'
+import { useAuth, useCrown } from '../context/AuthContext'
+import CrownBadge from './CrownBadge'
 import { useT, useLang } from '../context/LangContext'
 import { pickGuestName } from '../guestNames'
 import { usePrefs, TABLE_THEMES } from '../context/PrefsContext'
@@ -299,6 +300,7 @@ function OptionBtn({ active, onClick, children }) {
 function LobbyChatPanel({ socket, messages, open, setOpen, onOpenCardPreview = null }) {
   const t    = useT()
   const { user } = useAuth()
+  const crownUserId = useCrown()
   const [text, setText] = useState('')
   const bottomRef = React.useRef(null)
 
@@ -331,7 +333,7 @@ function LobbyChatPanel({ socket, messages, open, setOpen, onOpenCardPreview = n
           <div style={{ flex: 1, overflowY: 'auto', padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 4 }}>
             {messages.map((m, i) => (
               <div key={i} style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#c9a84c', flexShrink: 0 }}>{m.username}</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#c9a84c', flexShrink: 0 }}><CrownBadge show={m.userId === crownUserId} />{m.username}</span>
                 <span style={{ fontSize: 11, color: '#b0a080', wordBreak: 'break-word', flex: 1 }}>{m.text}</span>
               </div>
             ))}
@@ -403,6 +405,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
   const t = useT()
   const { lang } = useLang()
   const { user, setUser, updateUser, logout, API_URL } = useAuth()
+  const crownUserId = useCrown()
   const { fourColor, toggleFourColor, deckTheme, setDeckThemeId, tableThemeId, setTableThemeId, cardStyle, setCardStyle } = usePrefs()
   const [themeHook] = useTheme()
   const theme = themeProp ?? themeHook
@@ -1139,7 +1142,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                       </div>
                       <div className="flex-1 min-w-0">
                         <span className="text-sm font-semibold truncate block" style={{ color: isMe ? '#c9a84c' : p.is_bot ? '#6a7a9a' : '#d4c89a' }}>
-                          {p.is_bot ? '🤖 ' : ''}{p.username}
+                          {p.is_bot ? '🤖 ' : ''}<CrownBadge show={p.id === crownUserId} />{p.username}
                         </span>
                         <span className="text-[9px] tabular-nums" style={{ color: '#2e4060' }}>{p.games_played}g · {p.games_won}W</span>
                       </div>
@@ -1188,7 +1191,7 @@ export default function Lobby({ onCreateGame, onJoinGame, onSpectateGame, onQuic
                       {PRESET_AVATARS[user.avatarId] || user.username?.[0]?.toUpperCase()}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: '#e8d5a3' }}>{user.username}</div>
+                      <div style={{ fontSize: 15, fontWeight: 700, color: '#e8d5a3', display: 'flex', alignItems: 'center', gap: 4 }}><CrownBadge show={user.id === crownUserId} />{user.username}</div>
                       <div style={{ fontSize: 11, marginTop: 2, color: user.email ? '#4a5570' : '#2e4060' }}>{user.email ?? t('acct_not_set')}</div>
                       {userStats && (
                         <div style={{ display: 'flex', alignItems: 'center', gap: 5, marginTop: 4 }}>

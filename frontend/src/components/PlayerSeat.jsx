@@ -1,6 +1,8 @@
 import Card from './Card'
 import { useT } from '../context/LangContext'
 import { PRESET_AVATARS } from './Cabinet'
+import { useCrown } from '../context/AuthContext'
+import CrownBadge from './CrownBadge'
 
 const TURN_ARROW = { bottom: '▲', top: '▼', left: '▶', right: '◀' }
 
@@ -98,6 +100,7 @@ function TrickDots({ bid, taken, statColor }) {
 
 export default function PlayerSeat({ player, position, isCurrentTurn, bid, trickCount, cardCount = 0, isDealer = false, isFirstPlayer = false, cardsInRound, totalTricksPlayed = 0, compact = false, mini = false, onClickPlayer = null, gameScore = null, timerCountdown = null }) {
   const t = useT()
+  const crownUserId = useCrown()
   const isLeft = position === 'left'
   const count  = Math.min(Math.max(cardCount, 0), 9)
 
@@ -191,6 +194,7 @@ export default function PlayerSeat({ player, position, isCurrentTurn, bid, trick
               {isCurrentTurn && (
                 <span className="text-xs font-black leading-none flex-shrink-0" style={{ color: activeColor }}>{TURN_ARROW[position]}</span>
               )}
+              <CrownBadge show={!!player?.userId && player.userId === crownUserId} />
               <span className="text-white font-semibold truncate" style={{ fontSize: 13 }}>
                 {player?.name ?? '–'}
               </span>

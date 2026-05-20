@@ -691,6 +691,11 @@ export async function getLeaderboard(limit = 20) {
   return rows
 }
 
+export async function getKing() {
+  const rows = await getLeaderboard(1)
+  return rows[0] ?? null
+}
+
 export async function getUserAvatarId(userId) {
   const { rows } = await pool.query(
     'SELECT avatar_id FROM users WHERE id = $1',
